@@ -14,11 +14,28 @@ public class JavaLeetCode {
                 Postorder = Left, Right, (ROOT)    
             DFS   
             BFS: Queue for each round
+
+            Greedy: (No algorithm) Making the BEST CHOICE per STEP. Whats the Trick of each step?
+            DP: Problems need to reference previously solved Sub-Problems: int[] dp
+            Backtracking: Trying ALL paths and choosing the best outcome.
+
+            Graphs
+                Topological Sort:
+                    - DIRECTED EDGES [0, 1], [1, 2], [2, 3]
+                    - Use INDEGREE and BFS wherever Indegree == 0
+                Dijkstra:
+                    - DIRECTED and WEIGHTED graph
+                    - Used to find shorest distance, etc.
+                    - BFS PriorityQueue go to shortest "int[] dist"
+                Prim's:
+                    - POINTS
+                    - Create a Minimum Spanning Tree. Always go to next shortest distance. Mark as "boolean[] visited"
         
         */
 
         // Map
         Map<Character, Integer> map = new HashMap<>();
+        TreeMap<Integer, Integer> treeMap = new TreeMap<>(); // Map and Sorted by Key
         // Set
         Set<Integer> set = new HashSet<>();
         Set<String> setWithInsertOrder = new LinkedHashSet<>();
@@ -26,6 +43,7 @@ public class JavaLeetCode {
         Stack<Integer> MyStack = new Stack<>();
         // Queue
         Queue<TreeNode> queue = new LinkedList<>();
+        Deque<Integer> queue = new ArrayDeque<>();
         // Heap
         PriorityQueue<Integer> minHeap = new PriorityQueue<>();
         PriorityQueue<Integer> maxHeap = new PriorityQueue<>(
@@ -152,47 +170,139 @@ public class JavaLeetCode {
         int num = Integer.parseInt("123");   // String -> int
     }
 
-    // BST
-    // Preorder = Node, Left, Right
-    // Inorder = Left, Node, Right
-    // Postorder = Left, Right, Root
-   
     /*
-        Dynamic Programming - for 1/2 step climbing stairs problem
+        Backtracking: Trying all outcomes (2^n) and building a Path (List<String> path)
 
-        // TOP DOWN MEMOIZATION - start at F(n)
-        Map<Integer, Integer> cache = new HashMap<>(Map.of(1, 1, 2, 2));
-        public int climbStairs(int n) {
-            // Completed Subproblem
-            if (cache.containsKey(n)) {
-                return cache.get(n);
+        class Solution {
+            public List<List<Integer>> solveBacktracking(int[] nums) {
+                List<List<Integer>> list = new ArrayList<>();
+                // Sorting helps handle duplicates and prunes early if needed
+                Arrays.sort(nums); 
+                backtrack(list, new ArrayList<>(), nums, 0);
+                return list;
             }
 
-            cache.put(n, climbStairs(n - 1) + climbStairs(n - 2));
+            private void backtrack(List<List<Integer>> list, List<Integer> tempList, int[] nums, int start) {
+                // 1. Base Case / Goal Met
+                if (isSolution(tempList)) {
+                    list.add(new ArrayList<>(tempList)); // Must make a deep copy
+                    return;
+                }
 
-            return cache.get(n);
-        }
+                for (int i = start; i < nums.length; i++) {
+                    // 2. Skip duplicates or handle invalid choices (Constraints)
+                    if (shouldSkip(nums, i, start)) continue; 
 
-        // BOTTOM UP TABULATION - start a 1, 2, 3...
-        public int climbStairs(int n) {
-            if (n == 1) {return 1;}
-            if (n == 2) {return 2;}
+                    // 3. Make Choice
+                    tempList.add(nums[i]);
 
-            int[] array = new int[n + 1];
-            array[0] = 1;
-            array[1] = 2;
+                    // 4. Move to next state (Recurse)
+                    backtrack(list, tempList, nums, i + 1); // Use i + 1 or i depending on reuse rules
 
-            for (int i = 2; i <= n; i++) {
-                array[i] = array[i - 1] + array[i - 2];
+                    // 5. Undo Choice (Backtrack)
+                    tempList.remove(tempList.size() - 1);
+                }
             }
-
-            return array[n - 1];
         }
     */
 
     /*
         Bit Manipulation
-        ^ = XOR
-            - duplicate numbers will remove themself
+        & = Both Bits are 1
+        | = Either Bit are 1
+        ^ = XOR (duplicate numbers will remove themselves)
+        - = NOT operator will flip the bits
+        << = Add 0 to the right end
+        >> = Move to right
     */
 }
+
+
+//////
+////// Low Level Design (LLD)
+//////
+/*
+    Creation Patterns 
+    - Singleton: Class has 1 instane and a global point of access
+        Interviewers will ask you to write a thread-safe implementation. 
+        You must use Double-Checked Locking with a volatile keyword (in Java) 
+        or use a static inner holder class (Bill Pugh breakthrough) 
+        to prevent race conditions during lazy initialization.
+
+    - Prototype: Allows an object to clone() itself 
+        (return a new object, same attributes of the existing class)
+   
+    - Factory: Object Type depends on Input
+        VehicleFactory
+        Interface Class ("Vehicle") has function createVehicle()
+        Class ("Truck") has @Override createVehicle()
+    
+    Structural Patterns
+    - Adapter: convert "Circle" to "Square"
+
+    - Decorator: Add new behavior to object, without changing original clas
+        interface Beverage
+        class Coffe implements Beverage
+        class Milk implements Beverage
+        new Sugar(new Milk(new Coffee())).cost() = 2.80
+
+    - Chain of Responsibility: Request must pass through multiple approvers
+        "Request" passes through TeamLead, Manager, Director
+
+    - Observor: State Change needs to update other objects
+        Order Status update ("create" or "paid")
+            -> EmailService
+            -> SmsService
+            -> InventoryNotification
+
+    - Strategy: Same tasks processed in different ways
+        "PaymentProcessor" -> CardPayment vs. WalletPayment vs. Check
+
+    - Composite: Show Tree Structures
+        Files, Folders
+
+    - Facade: Hide Complexity with a Front Facing Interface
+        "OrderFacade" hides logic of Inventory, Payment, Shipping
+
+    - Command: Actions need to be represented as Objects
+        interface Command
+        class DeleteCommand implments Command
+
+    - State: Object Behavior Depends on State
+        ship() depends on "created" vs "Paid" vs "delivered"
+
+    - Template Method: Multiple Objects follow similar structue, but implements differently
+        
+
+
+    OOP Basics
+    Inheritance: "Human" extends "Animal"
+    Encapsulation = attributes are PRIVATE, and must be gotten through methods (get/set)
+    Polymorphism: Method overriding (Classes) or Method overriding (input types)
+    Abstraction = Hides the implementation details and just shows the methods
+
+
+
+    Class Relationships
+    - Association: 2 classes reference eachother
+    - Aggregation: Has-A relationship (Team "HasA" player)
+    - Composition: Has-A relationship, class cannot exist without previous (List<Items> needs "Order")
+    - Dependancy: One class uses another briefly, like "Order" acccesing "Gateway"
+
+
+
+    SOLID Principles
+    S: Single Responsibility class
+    O: Open/Close open for extension, closed for modificaiton
+    L: Liskov Substition: Subtypes can be used the same as their base types ("FixedList" extends "List", or "Square" extends "Shape")
+    I: Interface Segregation: Interfaces should be small & purpose based ("iPhone" vs "RotaryPhone")
+    D: Dependancy Inversion: High Level Modules (Business Logic) should not depened on low-level modules, like writing to a SQL database. 
+        They should call to a database service.
+
+
+
+    UML Diagrams
+    - Class: attributes & methods, and lines between classes
+    - Use Case: Person -> "book ticket" vs. "cancel" vs. "pay"
+    - Sequence: timeline, with Client/Order/Payment lines on a timeline
+*/
