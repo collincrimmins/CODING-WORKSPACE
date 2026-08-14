@@ -1,4 +1,4 @@
-package LLD.Creational;
+package LLD.Patterns.Creational;
 
 import java.util.Collections;
 import java.util.HashMap;

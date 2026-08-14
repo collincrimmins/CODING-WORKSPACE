@@ -1,4 +1,4 @@
-package LLD.Creational;
+package LLD.Patterns.Creational;
 
 public class Factory {
     

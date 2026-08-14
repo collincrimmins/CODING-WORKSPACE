@@ -1,4 +1,4 @@
-package LLD.Structural;
+package LLD.Patterns.Structural;
 
 public class Adapter {
     
