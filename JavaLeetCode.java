@@ -222,55 +222,64 @@ public class JavaLeetCode {
 ////// Low Level Design (LLD)
 //////
 /*
+    Java
+    - OOPS basics
+    - How does a HashMap work
+    - Multithreading
+        Volatile keyword: a volatile variable reads from Main RAM, not a CPU cache
+            private volatile boolean active = true
+            use when written one 1 thread and read by Many threads
+        print 1 to 100 multithreaded
+        print odd/even numbers in multiple threads one by one
+    - Garbage collection
+    - Memory Model
+
+
+
+
     Creation Patterns 
     - Singleton: Class has 1 instane and a global point of access
         Interviewers will ask you to write a thread-safe implementation. 
         You must use Double-Checked Locking with a volatile keyword (in Java) 
         or use a static inner holder class (Bill Pugh breakthrough) 
         to prevent race conditions during lazy initialization.
-
     - Prototype: Allows an object to clone() itself 
         (return a new object, same attributes of the existing class)
-   
-    - Factory: Object Type depends on Input
+    - Factory (Method): Object Type depends on Input
         VehicleFactory
         Interface Class ("Vehicle") has function createVehicle()
         Class ("Truck") has @Override createVehicle()
+    - Factory (Abstract)
+    - Builder
     
     Structural Patterns
     - Adapter: convert "Circle" to "Square"
-
+    - Bridge
+    - Composite: Show Tree Structures
+        Files, Folders
     - Decorator: Add new behavior to object, without changing original clas
         interface Beverage
         class Coffe implements Beverage
         class Milk implements Beverage
         new Sugar(new Milk(new Coffee())).cost() = 2.80
+    - Facade: Hide Complexity with a Front Facing Interface
+        "OrderFacade" hides logic of Inventory, Payment, Shipping
 
+    Behavioral Patterns
     - Chain of Responsibility: Request must pass through multiple approvers
         "Request" passes through TeamLead, Manager, Director
-
     - Observor: State Change needs to update other objects
         Order Status update ("create" or "paid")
             -> EmailService
             -> SmsService
             -> InventoryNotification
-
     - Strategy: Same tasks processed in different ways
         "PaymentProcessor" -> CardPayment vs. WalletPayment vs. Check
-
-    - Composite: Show Tree Structures
-        Files, Folders
-
-    - Facade: Hide Complexity with a Front Facing Interface
-        "OrderFacade" hides logic of Inventory, Payment, Shipping
-
     - Command: Actions need to be represented as Objects
         interface Command
         class DeleteCommand implments Command
-
     - State: Object Behavior Depends on State
         ship() depends on "created" vs "Paid" vs "delivered"
-
     - Template Method: Multiple Objects follow similar structue, but implements differently
         
 
@@ -284,17 +293,37 @@ public class JavaLeetCode {
 
 
     Class Relationships
-    - Association: 2 classes reference eachother
-    - Aggregation: Has-A relationship (Team "HasA" player)
-    - Composition: Has-A relationship, class cannot exist without previous (List<Items> needs "Order")
-    - Dependancy: One class uses another briefly, like "Order" acccesing "Gateway"
+    - Association: "Uses-a" neither is parent or child
+        Student <----> Teacher
+        Arrow
+    - Aggregation: "Whole-to-part" (Weak) child exist independantly of parent
+        Playlist <>----> Song
+        Department <>--> Professor
+        Hollow Diamond
+    - Composition: "Whole-to-part" (Strong) parent owns childs lifecycle
+        Order List<LineItem> <>----> LineItem
+        Solid Diamond
+    - Dependancy: A class "uses" another briefly
+        TicketService -> SeatValidator, PaymentProcessor, EmailService
+        Dashed Line w/ Arrow
 
 
 
     SOLID Principles
     S: Single Responsibility class
-    O: Open/Close open for extension, closed for modificaiton
-    L: Liskov Substition: Subtypes can be used the same as their base types ("FixedList" extends "List", or "Square" extends "Shape")
+    O: OPEN for extension, CLOSED for modification
+        PaymentsProcessor -> CreditCard, Paypal, Bitcoin
+        interface PaymentMethod {
+            void processPayment(double amount);
+        }
+        class CreditCardPayment implements PaymentMethod {
+            @Override
+            public void processPayment(double amount) {}
+        }
+    L: Liskov Substition: Subtypes can be used the same as their base types 
+        "FixedList" extends "List"
+        "Square" extends "Shape"
+        "EditableDocument" extends "ReadOnlyDocument"
     I: Interface Segregation: Interfaces should be small & purpose based ("iPhone" vs "RotaryPhone")
     D: Dependancy Inversion: High Level Modules (Business Logic) should not depened on low-level modules, like writing to a SQL database. 
         They should call to a database service.
@@ -305,4 +334,21 @@ public class JavaLeetCode {
     - Class: attributes & methods, and lines between classes
     - Use Case: Person -> "book ticket" vs. "cancel" vs. "pay"
     - Sequence: timeline, with Client/Order/Payment lines on a timeline
+    - Line w/ Arrow = the class uses another class
+        class Order {
+            "private PaymentGatway gateway;"
+        }
+    - Other Class Types
+        <<interface>> MyClass
+        <<enumeration>> MyClass
+        <<abstract>> MyClass
+    - Prefixes
+        + Public (methods)
+        - Private (variables)
+        # protected
+    - Lines
+        1
+        0..1    zero or one (optional)
+        *       many (zero or more)
+        1..*    Atleast 1
 */
