@@ -2,25 +2,26 @@ package LLD.Projects.parkinglot.ParkingLotController;
 
 import java.util.List;
 
+import LLD.Projects.parkinglot.ParkingFloor.ParkingFloor;
 import LLD.Projects.parkinglot.ParkingSpots.ParkingSpot;
 import LLD.Projects.parkinglot.VehicleFactoryPattern.Vehicle;
 
 public class ParkingLot {
-    public List<ParkingSpot> parkingSpots;
-
-    public ParkingLot(List<ParkingSpot> parkingSpots) {
-        this.parkingSpots = parkingSpots;
+     private List<ParkingFloor> floors; // List of parking floors in the parking lot
+    // Constructor to initialize the parking lot with given floors
+    public ParkingLot(List<ParkingFloor> floors) {
+        this.floors = floors;
     }
 
     // Find Spot by Vehicle Type
     public ParkingSpot findAvailableSpot(String vehicleType) {
-        for (ParkingSpot spot : parkingSpots) {
-            if (!spot.isOccupied()
-                && spot.getSpotType().equals(vehicleType)) {
-                    return spot;
+        for (ParkingFloor floor : floors) {
+            ParkingSpot spot = floor.findAvailableSpot(vehicleType);
+            if (spot != null) {
+                return spot; // Return the first available spot found
             }
         }
-        return null;
+        return null; // Return null if no spot is available
     }
 
     // Set Vehicle
@@ -52,17 +53,19 @@ public class ParkingLot {
         }
     }
 
-    // Get Spot by Number
+    // Method to retrieve a parking spot by its spot number
     public ParkingSpot getSpotByNumber(int spotNumber) {
-        for (ParkingSpot spot : parkingSpots) {
+        for (ParkingFloor floor : floors) {
+        for (ParkingSpot spot : floor.getParkingSpots()) {
             if (spot.getSpotNumber() == spotNumber) {
-                return spot;
+            return spot; // Return the parking spot if found
             }
         }
-        return null;
+        }
+        return null; // Return null if no spot with the given number exists
     }
-
-    public List<ParkingSpot> getParkingSpots() {
-        return parkingSpots;
+    // Getter method to retrieve the list of parking floors
+    public List<ParkingFloor> getFloors() {
+        return floors;
     }
 }

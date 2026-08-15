@@ -8,6 +8,7 @@ import LLD.Projects.parkinglot.FareStrategyPattern.ParkingFeeStrategy;
 import LLD.Projects.parkinglot.FareStrategyPattern.ConcreteStrategies.BasicHourlyRateStrategy;
 import LLD.Projects.parkinglot.FareStrategyPattern.ConcreteStrategies.PremiumRateStrategy;
 import LLD.Projects.parkinglot.ParkingLotController.ParkingLot;
+import LLD.Projects.parkinglot.ParkingLotController.ParkingLotBuilder;
 import LLD.Projects.parkinglot.ParkingSpots.ParkingSpot;
 import LLD.Projects.parkinglot.ParkingSpots.ConcreteParkingSpots.BikeParkingSpot;
 import LLD.Projects.parkinglot.ParkingSpots.ConcreteParkingSpots.CarParkingSpot;
@@ -20,6 +21,17 @@ import LLD.Projects.parkinglot.enums.DurationType;
 
 public class Main {
     public static void main(String[] args) {
+        ParkingLot parkingLot =
+            new ParkingLotBuilder()
+            // First floor: 2 car spots, 2 bike spots
+            .createFloor(1, 2, 2)
+            // Second floor: 3 car spots, 1 bike spot, 1 other vehicle spot
+            .createFloor(2, 3, 1, 1)
+            .build();
+
+        
+
+        /*
         // Initialize parking spots
         List<ParkingSpot> parkingSpots = new ArrayList<>();
         parkingSpots.add(new CarParkingSpot(1, "Car"));
@@ -67,6 +79,7 @@ public class Main {
         }
 
         scanner.close();
+        */
     }
 
     private static PaymentStrategy getPaymentStrategy(int paymentMethod, double fee) {
