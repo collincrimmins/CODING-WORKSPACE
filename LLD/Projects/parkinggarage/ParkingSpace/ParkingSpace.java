@@ -1,0 +1,63 @@
+package LLD.Projects.parkinggarage.ParkingSpace;
+
+import javax.management.RuntimeErrorException;
+
+import LLD.Projects.parkinggarage.Vehicles.Vehicle;
+import LLD.Projects.parkinggarage.enums.VehicleSize;
+
+public class ParkingSpace {
+    // Attributes
+    private VehicleSize spaceSize;
+
+    // Vehicle
+    private boolean occupied;
+    private String licensePlate;
+
+    // Constructor
+    public ParkingSpace(VehicleSize size) {
+        spaceSize = size;
+        occupied = false;
+        licensePlate = "";
+    }
+
+    public boolean canFitCar(Vehicle vehicle) {
+        if (spaceSize == vehicle.getVehicleSize()) {
+            return true;
+        }
+        return false;
+    }
+
+    public boolean isOccupied() {
+        return occupied;
+    }
+
+    public VehicleSize getSpaceSize() {
+        return spaceSize;
+    }
+
+    // Set Vehicle to Space
+    public void setVehicle(Vehicle vehicle) {
+        if (occupied) {
+            throw new RuntimeException("[Error] occupied parking space");
+        }
+
+        System.err.println("Succesfully parked " + vehicle.getLicensePlate() + " in space size " + vehicle.getVehicleSize());
+        occupied = true;
+        licensePlate = vehicle.getLicensePlate();
+    }
+
+    public void exitSpace() {
+        occupied = false;
+        licensePlate = "";
+    }
+
+    public String getLicensePlate() {
+        return licensePlate;
+    }
+
+    // Exit Space
+    public void setEmptySpace() {
+        occupied = false;
+        licensePlate = "";
+    }
+}
