@@ -3,7 +3,8 @@ package LLD.Projects.parkinggarage.ParkingGarage;
 import java.util.ArrayList;
 import java.util.List;
 
-import LLD.Projects.parkinggarage.Fee.Fee;
+import LLD.Projects.parkinggarage.Fee.FeeStrategy;
+import LLD.Projects.parkinggarage.Fee.Concrete.SmallFee;
 import LLD.Projects.parkinggarage.ParkingFloor.ParkingFloor;
 import LLD.Projects.parkinggarage.ParkingSpace.ParkingSpace;
 import LLD.Projects.parkinggarage.Payments.PaymentStrategy;
@@ -53,15 +54,18 @@ public class ParkingGarage {
     }
 
     // Exit Car
-    public void vehicleExitParkingGarage(Vehicle vehicle, PaymentStrategy vehiclePaymentStrategy) {
+    public void vehicleExitParkingGarage(Vehicle vehicle, PaymentStrategy paymentStrategy) {
         // Exit Space
         ParkingSpace space = vehicle.getParkingSpace();
         space.exitSpace();
         
         // Charge Fee on Exit
         int numHours = 2;
-        double fee = Fee.calculatePayment(numHours);
-        vehiclePaymentStrategy.pay(fee);
+        double fee = vehicle.getFeeStrategy().calculatePayment(numHours);
+        paymentStrategy.pay(fee);
+
+        // Send Notification
+        vehicle.getNotificationObservor().update(vehicle.getLicensePlate() + " has exited the garage");
 
         System.out.println("Succesfully exited " + vehicle.getLicensePlate());
     }

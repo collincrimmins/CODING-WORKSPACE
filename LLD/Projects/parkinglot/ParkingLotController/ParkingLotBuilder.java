@@ -16,10 +16,10 @@ public class ParkingLotBuilder {
         this.floors = new ArrayList<>();
     }
 
-    public ParkingLotBuilder addFloor(ParkingFloor floor) {
-        floors.add(floor);
-        return this;
-    }
+    // public ParkingLotBuilder addFloor(ParkingFloor floor) {
+    //     floors.add(floor);
+    //     return this;
+    // }
 
     public ParkingLotBuilder createFloor(int floorNumber, int numOfCarSpots,
         int numOfBikeSpots, int... otherSpotCounts) {
