@@ -8,9 +8,9 @@ import LLD.Projects.parkinggarage.enums.VehicleSize;
 public class ParkingSpace {
     // Attributes
     private VehicleSize spaceSize;
+    private boolean occupied;
 
     // Vehicle
-    private boolean occupied;
     private String licensePlate;
 
     // Constructor

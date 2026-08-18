@@ -1,0 +1,103 @@
+// Map
+Map<Character, Integer> map = new HashMap<>();
+TreeMap<Integer, Integer> treeMap = new TreeMap<>(); // Map and Sorted by Key
+// Set
+Set<Integer> set = new HashSet<>();
+Set<String> setWithInsertOrder = new LinkedHashSet<>();
+// Stack
+Stack<Integer> MyStack = new Stack<>();
+// Queue
+Queue<TreeNode> queue = new LinkedList<>();
+Deque<Integer> queue = new ArrayDeque<>();
+// Heap
+PriorityQueue<Integer> minHeap = new PriorityQueue<>();
+PriorityQueue<Integer> maxHeap = new PriorityQueue<>(
+    // Collections.reverseOrder()
+    // (a, b) -> (a - b)
+    // (ObjectA, ObjectB) -> Integer.compare(ObjectA.value, ObjectB.value)
+);
+
+
+
+
+
+BST
+    Preorder = (ROOT), Left, Right
+    Inorder = Left, (ROOT), Right
+    Postorder = Left, Right, (ROOT)    
+DFS   
+BFS: Queue for each round
+
+Greedy: (No algorithm) Making the BEST CHOICE per STEP. Whats the Trick of each step?
+    Kadane's: In an array [1,2,3] you can either Extend or Reset your current counter
+DP: Problems need to reference previously solved Sub-Problems: int[] dp
+Backtracking: Trying ALL paths and choosing the best outcome.
+
+Graphs
+    Kahn's Algorithm Topological Sort:
+        - DIRECTED EDGES [0, 1], [1, 2], [2, 3]
+        - Use INDEGREE and BFS wherever Indegree == 0
+    Dijkstra:
+        - DIRECTED and WEIGHTED graph
+        - Used to find shorest distance, etc.
+        - BFS PriorityQueue go to shortest "int[] dist"
+    Prim's:
+        - POINTS
+        - Create a Minimum Spanning Tree. Always go to next shortest distance. Mark as "boolean[] visited"
+
+
+
+
+
+
+Backtracking: Trying all outcomes (2^n) and building a Path (List<String> path)
+
+class Solution {
+    public List<List<Integer>> solveBacktracking(int[] nums) {
+        List<List<Integer>> list = new ArrayList<>();
+        // Sorting helps handle duplicates and prunes early if needed
+        Arrays.sort(nums); 
+        backtrack(list, new ArrayList<>(), nums, 0);
+        return list;
+    }
+
+    private void backtrack(List<List<Integer>> list, List<Integer> tempList, int[] nums, int start) {
+        // 1. Base Case / Goal Met
+        if (isSolution(tempList)) {
+            list.add(new ArrayList<>(tempList)); // Must make a deep copy
+            return;
+        }
+
+        for (int i = start; i < nums.length; i++) {
+            // 2. Skip duplicates or handle invalid choices (Constraints)
+            if (shouldSkip(nums, i, start)) continue; 
+
+            // 3. Make Choice
+            tempList.add(nums[i]);
+
+            // 4. Move to next state (Recurse)
+            backtrack(list, tempList, nums, i + 1); // Use i + 1 or i depending on reuse rules
+
+            // 5. Undo Choice (Backtrack)
+            tempList.remove(tempList.size() - 1);
+        }
+    }
+}
+
+
+
+
+
+Bit Manipulation
+& = Both Bits are 1
+| = Either Bit are 1
+^ = XOR (duplicate numbers will remove themselves)
+- = NOT operator will flip the bits
+<< = Add 0 to the right end
+>> = Move to right
+
+
+
+
+
+
