@@ -1,15 +1,14 @@
-// Map
 Map<Character, Integer> map = new HashMap<>();
 TreeMap<Integer, Integer> treeMap = new TreeMap<>(); // Map and Sorted by Key
-// Set
+
 Set<Integer> set = new HashSet<>();
 Set<String> setWithInsertOrder = new LinkedHashSet<>();
-// Stack
+
 Stack<Integer> MyStack = new Stack<>();
-// Queue
+
 Queue<TreeNode> queue = new LinkedList<>();
 Deque<Integer> queue = new ArrayDeque<>();
-// Heap
+
 PriorityQueue<Integer> minHeap = new PriorityQueue<>();
 PriorityQueue<Integer> maxHeap = new PriorityQueue<>(
     // Collections.reverseOrder()

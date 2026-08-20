@@ -1,0 +1,382 @@
+Question Types
+1) Booking System
+    Keys: Data consistency (double booking), distributed locking, 
+    > Ticketmaster
+    > Flight Booking
+2) Location Systems
+    Keys: Geospatial Indexing & Streaming, Queues (Kafka) for driver-passenger matching
+    > Uber
+    > Yelp reviews
+    > Food delivery
+3) High Throughput Messaging & Feed Systems
+    Keys: Fan-out scale & read vs write tradeoffs
+    > WhatsApp/Messengers
+    > Twitter Feed
+    > Instagram Feed
+4) Heavy Data Storage & Streaming
+    Keys: Large Blob Storage, Async Processing, CDNs
+    > Youtube
+    > Netflix
+    > Google Drive
+5) Distributed Infastructure Utilities
+    Keys: Low Latency, High Availability, Uniqueness
+    > URL Shortener
+    > API Rate Limiter
+
+Systems Design
+1) Requirements
+2) Core Entities
+3) API Interface
+4) Data Flow
+5) High Level Design
+6) Deep dives...
+
+
+Common Patterns
+- Pushing Realtime Updates
+    Server Sent Events: pushing from Server-to-Client
+        you want clients to get notifications or events as soon as they happen
+    Websockets: persistent bi-directlional client-and-server
+- Long Running Tasks
+    Server creates Job ID
+    Workers complete job in Job Queue
+    Push to Database
+- Dealing with Contention
+    locks
+- Scaling Reads
+    Cache
+    CDNs
+    Database Indexes or Denormalization
+    Read replicas
+- Scaling Writes
+    Horizontal Sharding
+    Vertical Partitioning
+    write bursts handled by queues
+- Handling large blobs
+    > server created presigned-URLs so clients can upload directly to blob storage like S3 (not letting server be a middleman)
+    > client downloads come from signed URLs for access control
+- Multistep Processes
+    system must guarantee exactly-once execution and maintains complete audit trails
+- Proximity Based Services
+
+
+
+
+
+Numbers to Know
+Caching
+- ~1 millisecond latency 
+- 100k+ operations/second
+- Memory-bound (up to 1TB)
+Databases
+- Up to 50k transactions/second
+- Sub-5ms read latency (cached)
+- 64 TiB+ storage capacity
+App Servers
+- 100k+ concurrent connections
+- 8-64 cores @ 2-4 GHz
+- 64-512GB RAM standard, up to 2TB
+Message Queues
+- Up to 1 million msgs/sec per broker
+- Sub-5ms end-to-end latency
+- Up to 50TB storage
+
+
+
+
+Search Optimized Databases
+- Slow Traditional Queries
+    SELECT * FROM documents WHERE document_text LIKE '%search_term%'
+- Elasticsearch: distributed REST search
+- Inverted Indexes: fast full text search
+    {
+        "word1": [doc1, doc2, doc3],
+        "word2": [doc2, doc3, doc4],
+        "word3": [doc1, doc3, doc4]
+    }
+- Tokenization: Tokenization is the process of breaking a piece of text into individual words.
+- Stemming: Stemming is the process of reducing words to their root form. This allows you to match different forms of the same word. For example, "running" and "runs" would both be reduced to "run".
+- Fuzzy Search: Fuzzy search is the ability to find results that are similar to a given search term. 
+- Scaling: Just like traditional databases, search optimized databases scale by adding more nodes to a cluster and sharding data across those nodes.
+
+
+
+API Gateway
+- AWS API Gateway
+
+Load Balancer
+- AWS Elastic Load Balancer
+
+Queues for Requests
+- Kafka
+- Message Ordering: usually FIFO
+- Retry Mehanisms:  Many queues have built-in retry mechanisms that attempt to redeliver a message a certain number of times before considering it a failure
+- Dead Letter Queues: used to store messages that cannot be processed
+- Scaling with Partitions: Queues can be partitioned across multiple servers so that they can scale to handle more messages.
+- Backpressure: Backpressure is a way of slowing down the production of messages when the queue is overwhelmed.
+
+Streams
+- When you need to process large amounts of data in real-time.
+- When you need to support complex processing scenarios like event sourcing
+- When you need to support multiple consumers reading from the same stream
+
+Distributed Lock
+- Ticketmaster: you might need a way to lock a resource - like a concert ticket - for a short time (~10 minutes in this case). This is so while one user is in the middle of buying a ticket, no one else can grab it. 
+- Use Redis to store a key-value lock
+    ticket-123: locked
+- Ecommerce checkout system for items in cart
+- Ride sharing lock when a client selects a driver
+- Locking Mechanisms: There are different ways to implement distributed locks. One common implementation uses Redis and is called Redlock. 
+- Lock Expiry: Distributed locks can be set to expire after a certain amount of time
+- Locking Granularity: Distributed locks can be used to lock a single resource or a group of resources. For example, you might want to lock a single ticket in a ticketing system or you might want to lock a group of tickets in a section of a stadium.
+- Deadlocks: Deadlocks can occur when two or more processes are waiting for each other to release a lock
+
+Distributed Cache - for SCALING and LOWERING LATENCY
+- Reduce # of Queries & Speed up Expensive Queries
+    Twitter Feed: grabbing a homepage is a lot of queries... Instead, run query once, then store in a distributed cache.
+- Eviction strategies
+    LRU - Least Recently accessed
+    FIFO
+    LFU - Least frequently used
+- Cache Write Strategy:
+    > Write-Through Cache: Writes data to both the cache and the underlying datastore simultaneously.
+    > Write-Around Cache: Writes data directly to the datastore, bypassing the cache.
+    > Write-Back Cache: Writes data to the cache and then asynchronously writes the data to the datastore.
+
+
+
+REST API
+
+Entities (Nouns)
+Actions (Verbs) are GET POST PUT PATCH DELETE
+GET /api/v1/users/123456
+
+Filtering, Sorting, Pagination
+GET /products?category=tech
+GET /products?sort=price
+GET /products?page=2&limit=20&cursor=123
+
+Path Parameters (ID for Entity): /events/:id
+Query Parameters: Filter, Sort, Modify - /events?city=NYC&date=2024-01-01
+Request Body: 
+
+200 OK
+201 created
+400 Bad Request
+401 Unauthroized
+403 Forbidden (logged in, not having permission)
+404 Not Foundation
+500 Server Error
+
+Twitter Example
+    POST /v1/tweets body: { "text": string }
+    GET /v1/tweets/{tweetId} -> Tweet
+    POST /v1/follows body: { "followee_id": string }
+    GET /v1/feed -> Tweet[]
+
+Common API Patterns
+- Pagination
+- Offset  Pagination /events?offset=20&limit=10
+- Cursor Pagination
+    > First request (no cursor)
+        /events?limit=10
+    > Second request w/ Cursor
+        /events?cursor=cmd9atj3p000007ky19w1dpy2&limit=10
+- Versioning
+    /v1/events
+
+API Rate Limiting common straegies
+- Per-user limits: 1000 requests per hour per authenticated user
+- Per-IP limits: 100 requests per hour for unauthenticated requests
+- Endpoint-specific limits: 10 booking attempts per minute to prevent ticket scalping
+
+RPC
+- in microservice architectures where services need to communicate frequently and efficiently
+    > For our Ticketmaster example, you might use REST APIs for your public endpoints that mobile apps and web clients consume, but use gRPC for internal communication between your booking service, payment service, and inventory service.
+
+
+
+
+Datbases
+- ACID
+    > Atomicity: All changes happen, or none
+    > Consistency: saved data follows the rules you defined
+    > Isolation: Transactions running at the same time do not step on eachother in unsafe ways
+    > Durability: Once a transaction is commited, the database can recover it after a crash
+- Transactions: full execution or none at all
+    BEGIN;
+
+    UPDATE accounts
+    SET balance_cents = balance_cents - 10000
+    WHERE id = 'A' AND balance_cents >= 10000;
+
+    -- If the previous statement updated 0 rows, ROLLBACK.
+
+    UPDATE accounts
+    SET balance_cents = balance_cents + 10000
+    WHERE id = 'B';
+
+    COMMIT;
+
+- Ecommerce might store orders in PostgreSQL (for ACID properties) and noSQL for product caalog because its Schema is flexible/changing, and is Read heavy.
+- Database Indexes: Reads get faster (email column), but Writes/Updates become slower.
+- Vertical Partitioning: When your Entity Table has dozens of columns, split them into more narrow tables.
+Joined by a Shared Key
+"User" -> ProfileTable (id, name, email, bio), AuthTable (id, passwordHash), BillingTable (id, card_number)
+- Normalization: Keep your data joined by foreign keys (Users / Products / Orders) then do joins - to avoid duplication of data
+- Denormalization: For READ HEAVY tables (such as "Order" having "Username" and "ProductTitle" directly stored in the ORDER table) you can put the dynamic data into 1 table. You must update it if the original data is updated.
+- Blob Storage: Binary-Large-Objections (Images/Videos/PDFs) Amazon S3
+Database just stores the URL string "aws.com/myimage"
+- Elasticsearch: used for full-text search (tweets/documents)
+
+
+
+Cache
+- Redis "cache-aside" (or lazy loading). 
+    > Store in Redis with a TTL
+    > The application checks the cache first. On a hit, it returns immediately. On a miss, it fetches from the database, stores the result in the cache, and then returns it.
+- "write through": app only writes to cache, then cache synchronously writes to databasee before returning to the application
+- "read through"  read-through caching, the cache acts as a smart proxy. Your application never talks to the database directly. On a cache miss, the cache itself fetches from the database, stores the data, and returns it.
+- Eviction
+    LRU
+    LFU
+    FIFO
+    TTL
+- Cache Consistency: the cache and database return different values for the same data. This is common because most systems read from the cache but write to the database first.
+    > Cache invalidation on writes
+    > Short TTLs for stale tolerance
+    > Accept eventual consistency: For feeds, metrics, and analytics, a short delay is usually fine.
+- hot key: is a cache entry that receives a huge amount of traffic compared to everything else.
+    >Replicate hot keys: Store the same value on multiple cache nodes and load balance reads across them.
+    >  Add a local fallback cache: Keep extremely hot values in-process to avoid pounding Redis.
+    > Apply rate limiting: Slow down abusive traffic patterns on specific keys.
+- Uses for Caches
+    > Read heavy workloads
+    > Expensive queries: user homepageeed
+
+Sharding
+- Use Case:
+    > A single database has too much traffic
+- (Default) Hash Based: hash(user_id) % 4
+- Range based (User IDS 1 to 1 million, etc)
+- How to talk about in interviews
+    > Shard Key is XYZ ("Shard by user_id because we're mostly querying by their posts, followers, and likes")
+    > Shard Strategy ("Hash sharding with consistent hashing")
+    > Tradeoffs ("The trade-off is that global queries become expensive. If we need 'trending posts across all users' we have to query all shards and aggregate results. We can handle that by caching trending content and pre-computing it with a background job rather than calculating it on every request.")
+    >  Address how you'll handle growth "We'll start with 64 shards, which gives us room to grow. Consistent hashing makes it easier to add shards later without resharding all the data. If we need more capacity, we can add shards and only a fraction of the data moves."
+
+
+Scaling
+- Vertical Scaling: More CPU, More RAM - for 1 just server
+- Horizontal Scaling: Get more servers, use Load Balancer to distribute to Server1, Server2...
+- Load Balancers
+    > Round Robin: sequential cyclical
+    > Sticky round-robin: If Alice’s first request goes to service A, the following requests go to service A as well.
+    > Weighted round-robin
+    The admin can specify the weight for each service. The ones with a higher weight handle more requests than others.
+    > Least # of Connections (useful for persistent connections like SSE or Websockets)
+    > Least Respose Time
+    > Random assignment
+
+
+Replication
+- primary-replica: all writes go to the primary, and changes are replicated to one or more replicas that handle read queries.
+    > Primary Datababase: READ + WRITE
+    > Replica #1: READ Only
+    > Replica #2: READ only
+- Sharding: Multiple Database Nodes
+    > Shard Router = shard_key % N (Hash based - like using a userID as key)
+
+
+
+////////////////////////////////
+////////////////////////////////
+Distributed Systems
+////////////////////////////////
+////////////////////////////////
+
+CAP Thereom
+- In a distributed system, you can only have 2 QUALITIES at one time
+- Example:
+    - Server in USA and Europe
+    - User updates profile "bio", it now replicates to those 2 servers
+    - Connection between our 2 servers fails (partitioned)
+    - Do we
+        > Availability: keep giving out potentially stale data
+        > Consistency: fail requests if data not guaranteed to be accurate
+- Consistency (Reads return the latest write)
+    > Strong Consistency vs Eventual Consistency
+- Availability (every request gets a response)
+- Partition Tolerance (system works even if the network links betwene nodes fails)
+- When to choose Consistency
+    > Ticket Booking: User A & B both book the same seat on a flight, because the system shows Stale data, as "available seat".
+    > Ecommerce Inventory: Amazon sells its last x1 inventory to 2 people
+    > Financial Systems: Stock data
+- When to choose Availability:
+    > Social Media: Showing outdated Username/Photo
+    > Content (Netflix): outdated movie description
+    > Review website: outdated reviews or businss hours etc
+- Consistency: Single Node Solutions (Database), Distributed Transactions
+- Availability: Multiple Asynchronous Read Replicas
+
+Consistency Model
+- Strong consistency: means that once a write succeeds, later reads must see that write or something newer.
+    > Data must be correct instantly
+- Eventual consistency: means copies of the data may disagree for a while, but they should become the same later if updates stop and replication keeps working.
+    > Temporary stale data is acceptable - and Availability or Low Latency is more important.
+- Casual Consistency: Related events appear in the same order to all users. This ensures logical ordering of dependent actions, such as ensuring comments on a post must appear after the post itself.
+- Read-your-own-writes Consistency: Users always see their own updates immediately, though other users might see older versions. (My profile update instantly updates)
+
+Idempotency: An idempotent operation produces the same result regardless of how many times you execute it.
+    > If the client retries, you could end up charging a customer twice or sending duplicate emails. Idempotency prevents this.
+    > GET and DELETE are naturally idempotent (getting a resource twice returns the same thing, deleting an already-deleted resource is a no-op). POST is not naturally idempotent, which is why you add an idempotency key: a unique identifier the client sends with each request. The server checks if it has already processed that key and returns the cached result instead of processing again.
+    > Idempotency Key: "abc-123" for request POST /payments. Server already sees that key "abc-123" has ran, so it ignores requets.
+
+
+
+Architecture Patterns
+- Microservices
+- Message Queues: Message queues decouple services by introducing an intermediary that stores messages until the consumer is ready to process them.
+    > Message queues decouple services by introducing an intermediary that stores messages until the consumer is ready to process them.
+    > Decoupling: Services do not need to know about eahcother
+    > Buffering: Handle traffic spikes by bsorbing burts
+    > Reliability: Message spersist even if consumers crash
+    > Scalability: Add more consumers to process faster
+- Rate Limiting
+    > Token Bucket: tokens refill at a fixed rate, each requets costs a token)
+    > Sliding Window: count requests in a rolling time window
+    > Fixed Window: count requetss in discrete time interval
+    > 429 Rejected Request - too many requests
+- API Gateway
+    > Auth
+    > Rate Limiting
+    > Routes
+    > Transform
+
+
+
+
+
+
+Data Modeling Example
+Users
+- userId (pk)
+- name
+- email (unique)
+- createdAt
+Posts
+- postId (pk)
+- userId(fk, index)
+- content
+- mediaUrls
+- createdAt (index)
+Comments
+- commentId (pk)
+- postId (fk, index)
+- userId (fk, index)
+- content
+- createdAt(index)
+
+Indexes
+- Composite Index: (user_id, created_at) to load chronological posts
+
