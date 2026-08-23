@@ -60,8 +60,10 @@ public class Main {
         // garage.getOpenParkingSpace(bike1);
 
         // Exit my cars
-        garage.vehicleExitParkingGarage(bike1, new CashPayment());
-        garage.vehicleExitParkingGarage(car1, new CashPayment());
-        garage.vehicleExitParkingGarage(truck1, new CreditCardPayment());
+        //garage.vehicleExitParkingGarage(bike1, new CashPayment());
+        //garage.vehicleExitParkingGarage(car1, new CashPayment());
+        //garage.vehicleExitParkingGarage(truck1, new CreditCardPayment());
+
+        garage.printGarageInfo();
     }
 }

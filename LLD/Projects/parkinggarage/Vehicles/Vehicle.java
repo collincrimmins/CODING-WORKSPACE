@@ -9,7 +9,6 @@ import LLD.Projects.parkinggarage.enums.VehicleSize;
 import LLD.Projects.parkinggarage.notifications.NotificationObservor;
 import LLD.Projects.parkinggarage.notifications.NotificationService;
 import LLD.Projects.parkinggarage.notifications.Notifications;
-import LLD.Projects.parkinglot.ParkingSpots.ParkingSpot;
 
 public abstract class Vehicle {
     // Vehicle

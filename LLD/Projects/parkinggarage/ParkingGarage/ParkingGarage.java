@@ -2,6 +2,8 @@ package LLD.Projects.parkinggarage.ParkingGarage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import LLD.Projects.parkinggarage.Fee.FeeStrategy;
 import LLD.Projects.parkinggarage.Fee.Concrete.SmallFee;
@@ -14,6 +16,7 @@ import LLD.Projects.parkinggarage.enums.VehicleSize;
 
 public class ParkingGarage {
     List<ParkingFloor> floors;
+    private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
 
     // Constructor
     private ParkingGarage() {
@@ -28,29 +31,36 @@ public class ParkingGarage {
 
     // Find Space
     public ParkingSpace getOpenParkingSpace(Vehicle vehicle) {
-        // Check Vehicle is not already parked
-        if (vehicle.getParkingSpace() != null) {
-            System.out.println("X - Vehicle " + vehicle.getLicensePlate() + " is already parked");
-            return null;
-        }
+        // Lock 
+        rwLock.readLock().lock();
 
-        // Find Space
-        for (ParkingFloor floor : floors) {
-            for (ParkingSpace space : floor.getParkingSpaces()) {
-                // Park in my Space Size
-                if (space.canFitCar(vehicle)) {
-                    if (!space.isOccupied()) {
-                        space.setVehicle(vehicle);
-                        vehicle.setParkingSpace(space);
-                        return space;
+        try {
+            // Check Vehicle is not already parked
+            if (vehicle.getParkingSpace() != null) {
+                System.out.println("X - Vehicle " + vehicle.getLicensePlate() + " is already parked");
+                return null;
+            }
+
+            // Find Space
+            for (ParkingFloor floor : floors) {
+                for (ParkingSpace space : floor.getParkingSpaces()) {
+                    // Park in my Space Size
+                    if (space.canFitCar(vehicle)) {
+                        if (!space.isOccupied()) {
+                            space.setVehicle(vehicle);
+                            vehicle.setParkingSpace(space);
+                            return space;
+                        }
                     }
                 }
             }
-        }
 
-        // No Space
-        System.out.println("X - No available space for vehicle size of " + vehicle.getVehicleSize());
-        return null;
+            // No Space
+            System.out.println("X - No available space for vehicle size of " + vehicle.getVehicleSize());
+            return null;
+        } finally {
+            rwLock.readLock().unlock();
+        }
     }
 
     // Exit Car

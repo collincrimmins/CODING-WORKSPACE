@@ -1,5 +1,8 @@
 package LLD.Projects.parkinggarage.ParkingSpace;
 
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import javax.management.RuntimeErrorException;
 
 import LLD.Projects.parkinggarage.Vehicles.Vehicle;
@@ -12,6 +15,9 @@ public class ParkingSpace {
 
     // Vehicle
     private String licensePlate;
+
+    // Concurrency
+    private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
 
     // Constructor
     public ParkingSpace(VehicleSize size) {
@@ -37,13 +43,19 @@ public class ParkingSpace {
 
     // Set Vehicle to Space
     public void setVehicle(Vehicle vehicle) {
-        if (occupied) {
-            throw new RuntimeException("[Error] occupied parking space");
-        }
+        rwLock.writeLock().lock();
 
-        System.err.println("Succesfully parked " + vehicle.getLicensePlate() + " in space size " + vehicle.getVehicleSize());
-        occupied = true;
-        licensePlate = vehicle.getLicensePlate();
+        try {
+            if (occupied) {
+                throw new RuntimeException("[Error] occupied parking space");
+            }
+
+            System.err.println("Succesfully parked " + vehicle.getLicensePlate() + " in space size " + vehicle.getVehicleSize());
+            occupied = true;
+            licensePlate = vehicle.getLicensePlate();
+        } finally {
+            rwLock.writeLock().unlock();
+        }
     }
 
     public void exitSpace() {

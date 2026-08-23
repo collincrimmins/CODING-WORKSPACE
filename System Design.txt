@@ -254,6 +254,101 @@ Cache
     > Read heavy workloads
     > Expensive queries: user homepageeed
 
+Redis
+- Cache
+- Distributed Lock
+    > TicketMaster needs to hold a lock on a ticket sale in cart
+    SET lock:concert:343 my-token NX EX 30
+    NX = succeed only if the key doesnt already exist
+    EX 30 = Expire after 30 seconds
+- Rate Limiting
+    Fixed Window Rate Limiter
+- Proximity Search
+- Event Sourcing (not as durable as Kafka)
+    Kafka: when you need durable, replayable streams with long retention for many independent consumers
+- Pub/Sub (not as durable as Kafka)
+- Hot Keys  
+    > Key Copies
+    > Read Replicas
+
+API Gateway
+- Request Routing to Services
+    /users/*
+- Validate Request
+    Valid URL request, required headers, request body
+- Middleware (Auth, Rate Limiitng)
+    Authenticate JWT Tokens
+    Limit Request Rates
+    Terminate SSL connections
+    Log Traffic
+    Version APIs
+    IP whitelist/blacklist
+    handle response timeouts
+- Response Transformation
+- Scaling
+    Horizontal: Add more servers to a Load Balancer
+        > API Gateways are stateless
+        > Client-to-Gateway Load Balancing: This is typically handled by a dedicated load balancer in front of your API Gateway instances (like AWS ELB or NGINX).
+        > Gateway-to-Service Load Balancing: The API Gateway itself can perform load balancing across multiple instances of backend services
+    Global Distribution: Deploy a Gateway at a geographical edge
+- Popular Examples
+    AWS API Gatway
+- When to use
+    > You have a microservice architecture 
+
+
+Kafka
+- Message Queue OR Stream Processing
+- Use Cases
+    > Queue: Processing Asynchronously for Youtube: add video to Kafka topic to be transcoded
+    > Queue: Virtual Waiting Queue for Ticketmaster
+    > Stream: continuous and immediate processing of incoming data, treating it as a real-time flow
+    > Stream: Messages need to be processed by multiple consumers simultaneously. In Design FB Live Comments 
+- Producers and Consumers
+- Partitioning Strategy
+- Consumer Group
+- Topics
+- Record
+    > Value (Payload)
+    > Key (determins which partition the message is sent to)
+    > Timestamp (ordering within a partition is determined by offsets, not timestamps)
+    > Headers (Metadata)
+-A Kafka cluster is made up of multiple brokers. These are just individual servers (they can be physical or virtual).
+- Each broker has a number of partitions. Each partition is an ordered, immutable sequence of messages that is continually appended to -- think of like a log file
+- A topic is just a logical grouping of partitions.
+- Each partition in Kafka functions essentially as an append-only log file
+    > Immutability (Messages cannt be altered)
+    > Efficiency: appends to end of hte log
+    > Scalability: Horizontal scaling because of append-only logging
+- Offset: Each message in a Kafka partition is assigned a unique offset, which is a sequential identifier indicating the message’s position in the partition. This offset is used by consumers to track their progress in reading messages from the topic.
+- Example
+    // Initialize the Kafka client
+    const kafka = new Kafka({
+    clientId: 'my-app',
+    brokers: ['localhost:9092']
+    })
+
+    // Initialize the producer
+    const producer = kafka.producer()
+
+    const run = async () => {
+    // Connecting the producer
+    await producer.connect()
+
+    // Sending messages to the topic 'my_topic' with keys
+    await producer.send({
+        topic: 'my_topic',
+        messages: [
+        { key: 'key1', value: 'Hello, Kafka with key!' },
+        { key: 'key2', value: 'Another message with a different key' }
+        ],
+    })
+    }
+Scalability
+    - Keep messages as small as possible (<1MB)
+        Such as storing the link to a s3url video, not storing the video itself on a kafka message
+
+
 Sharding
 - Use Case:
     > A single database has too much traffic
@@ -376,7 +471,65 @@ Comments
 - userId (fk, index)
 - content
 - createdAt(index)
-
 Indexes
 - Composite Index: (user_id, created_at) to load chronological posts
 
+
+
+
+Scaling Reads
+- Indexes on Datbases
+    Turns O(n) row scan into O(logn) with indexes
+    "Too many indexes" is overblown for modern databases
+- Vertical Scaling: a bigger server with RAM and Disk space
+- Denormalization: store duplicate data in important tables, to avoid doings many joins
+- Horizontal Scaling
+- Read Replicas
+     Synchronous replication ensures data consistency but introduces latency.
+     Asynchronous replication is faster but introduces potential data inconsistencies.
+- Application Layer Redis Cache
+    TTL
+    Write-through invalidation: Update or delete cache entries immediately when writing to the database
+    Write behind invalidatio:  Queue invalidation events to process asynchronously.
+- Database Sharding
+- Common Examples
+    URL Shortener: read heavy = redis with no TTL expiration & CDN caching
+    Ticketmaster: Cache Event information
+    News Feeds: Precomputer feeds, cache recent posts from followed users, use pagination to avoid loading entire feeds
+    Youtube: Video metadata - titles, thumbnails
+- When not to use
+    Write heavy systems - ubers location tracking
+    Small scale apps < 1000 users
+    Strongly Consistent Systems - Finanacial Transactions, Inventory Management (no stale data allowed)
+- "What happens when your queries start taking longer as your dataset grows?"
+    Slow Read Example: Your scanning every row for matching "email", at 200 bytes per row with 10 million users that 2GB of data to scan to find a user
+- ""How do you handle millions of concurrent reads for the same cached data?""
+    Cache key fanout spreads a single hot key across multiple cache entries. (feed:taylor-swift:1, feed:taylor-swift:2)
+- ""What happens when multiple requests try to rebuild an expired cache entry simultaneously?""
+    Cache Stampede
+    probabilistic early refresh - serving cached data while refreshing it in the background
+- ""How do you handle cache invalidation when data updates need to be immediately visible?""
+    cache versioning
+        event:123:v42     // before update
+        event:123:v43     // after update
+
+Scaling Writes
+- Vertical Scaling (Disk I/O Speed, CPU, Network bandiwth)
+- Sharding and Partitioning
+    Horizontal Sharidng
+    Partitioning Key - like a userid, or postid
+- Vertical Partitioning
+    splitting columns
+    TABLE posts -> post_content, post_metrics, post_analytics
+- Queues (for sudden bursts)
+- Batching Writes
+    Intermediate Processing: for a "like system" on a post, you can update the number in a window like 1 minute then update the db
+- Common Interview Examples
+    Instagram: sharding by user ID for posts, vertical partitioning for different data types (user profiles, posts, analytics), and hierarchical storage for older posts.
+    Search Applications - Search applications are often write-heavy with substantial preprocessing required in order to make the search results quick to retrieve. Partitioning and batching are key to making this work.
+- ""How do you handle resharding when you need to add more shards?""
+    You started with 8 shards, but now you need 16. How do you migrate data without downtime?
+    Production systems use gradual migration which targets writes to both locations (e.g. the shard we're migrating from and the shard we're migrating to). This allows us to migrate data gradually while maintaining availability.
+- ""What happens when you have a hot key that's too popular for even a single shard?""
+    Split All Keys
+    Split Hot Keys Dynamically
