@@ -1,3 +1,46 @@
+Main Patterns
+- File Storage (S3)
+    > Presigned URL for Upload/Download
+- Cache
+    > Redis with TTL (cache-aside)
+    > Location Cache (Redis Geohash)
+- Distributed Lock
+    > Redis ("ticket1" : "user_id")
+- Database Row Locking
+    > Pesimistic vs Optimistic locking
+- Cron Job
+    > Update XYZ row property every 1 hour
+- Elasticsearch
+    > Inverted Index for Text Search
+    > Index on XYZ property
+    > Geospatial Index (geohash)
+- Queue
+    > Waiting in ticket reservation queue for major events
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Question Types
 1) Booking System
     Keys: Data consistency (double booking), distributed locking, 
@@ -533,3 +576,102 @@ Scaling Writes
 - ""What happens when you have a hot key that's too popular for even a single shard?""
     Split All Keys
     Split Hot Keys Dynamically
+
+
+
+Handling Large Blobs
+- Uploads: Presigned URL on S3 Blob
+    1 specific file, 1 specific location, time limit (15 mins to 1 hour)
+    https://mybucket.s3.amazonaws.com/uploads/user123/video.mp4
+    ?X-Amz-Algorithm=AWS4-HMAC-SHA256
+    &X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20240115%2Fus-east-1%2Fs3%2Faws4_request
+    &X-Amz-Date=20240115T000000Z
+    &X-Amz-Expires=900
+    &X-Amz-SignedHeaders=host
+    &X-Amz-Signature=b2754f5b1c9d7c4b8d4f6e9a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0
+- Downloads: Signed URLS for S3 Blob
+- Downloads: CDN signatures for AWS CloudFront
+    https://d123456.cloudfront.net/videos/lecture.mp4
+    ?Expires=1705305600
+    &Signature=j1k2l3m4n5o6p7q8r9s0t1u2v3w4x5y6z7a8b9c0d1e2f3g4h5i6j7k8l9m0
+    &Key-Pair-Id=APKAIOSFODNN7EXAMPLE
+- Upload in chunks[]
+- Metadata in SQL
+    CREATE TABLE files (
+        id              UUID PRIMARY KEY,
+        user_id         UUID NOT NULL,
+        filename        VARCHAR(255),
+        size_bytes      BIGINT,
+        content_type    VARCHAR(100),
+        storage_key     VARCHAR(500),  -- s3://bucket/user123/files/abc-123.pdf
+        status          VARCHAR(50),   -- 'pending', 'uploading', 'completed', 'failed'
+        created_at      TIMESTAMP,
+        updated_at      TIMESTAMP
+    );
+- Cloud Features
+    > Temporary Upload URLS (Presigned URLS)
+    > Multipart Uploads (in chunks[])
+    > Event Notifications (S3 Event Notification)
+    > CDN Signed URLs (Cloudffront signed URLs)
+    > Cleanup Policies
+- Common Examples
+    Youtube
+    Instagram
+    Dropbox
+    whatsapp
+- when NOT to use
+    > Small files <10MB can use normal server route
+    > Synchronous validation requirements: your validaitng CSV info as it is uploaded
+- "What if the upload fails at 99%?"
+    chunked uploads
+- "How do you prevent abuse?"
+    Before letting any user access the files- do your backend processes, like virus scans, contnet validation ,etc
+- "How do you handle metadata?"
+    uploads/{user_id}/{timestamp}/{uuid}
+- "How do you ensure downloads are fast?"
+    CDNs
+
+
+Real Time updates
+- Layer 4 Transport Layer: TCP / UDP
+- Layer 7 Application Layer: DNS, HTTP, Websockets, WebRTC
+- Load Balancers
+    Layer 4
+    Layer 7
+- simple polling (simple, stateless)
+    async function poll() {
+        const response = await fetch('/api/updates');
+        const data = await response.json();
+        processData(data);
+    }
+
+    // Poll every 2 seconds
+    setInterval(poll, 2000);
+- long polling:  the client makes a request to the server and the server holds the request open until new data is available
+    // Client-side of long polling
+    async function longPoll() {
+    while (true) {
+        try {
+            const response = await fetch('/api/updates');
+            const data = await response.json();
+            
+            // Handle data
+            processData(data);
+        } catch (error) {
+            // Handle error
+            console.error(error);
+            
+            // Add small delay before retrying on error
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+    }
+    }
+- Server Sent Events
+    > Client established stateful SSE connection
+    > Sever keeps connection open, and sends when new data comes in
+- Websockets
+    > Bidirectional & Stateful
+    > Load Balancer "Least Connections" is ideal for websockets, because the connection is persistent
+- WebRTC: Peer-to-Peer
+    > Video calls
+- Pushing via Pub/Sub
