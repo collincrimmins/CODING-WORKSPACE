@@ -16,7 +16,8 @@ Main Patterns
     > Geospatial Index (geohash)
 - Queue
     > Waiting in ticket reservation queue for major events
-
+- Asynchronous Workers w/ Kafka Queue
+    > Async processes (Processing Videos)
 
 
 
@@ -632,7 +633,7 @@ Handling Large Blobs
     CDNs
 
 
-Real Time updates
+# Real Time updates
 - Layer 4 Transport Layer: TCP / UDP
 - Layer 7 Application Layer: DNS, HTTP, Websockets, WebRTC
 - Load Balancers
@@ -674,4 +675,124 @@ Real Time updates
     > Load Balancer "Least Connections" is ideal for websockets, because the connection is persistent
 - WebRTC: Peer-to-Peer
     > Video calls
-- Pushing via Pub/Sub
+- Pushing via Pub/Sub (redis cluster)
+- Common Interview Examples
+    > Chat Applications - The classic real-time use case. Messages must appear instantly across all participants. WebSockets handle the bidirectional communication perfectly, while pub/sub distributes messages to the right servers
+    > Live Comments
+    > Document Co-editing
+    > Live Dashboards
+- Avoid real-time updates when you can get away with a simple polling model. If you're not latency sensitive, polling is a great baseline and minimizes complexity
+- "How do you handle connection failures and reconnection?"
+    For recovery, you need to track what messages or updates a client has received. When they reconnect, they should get everything they missed
+- "What happens when a single user has millions of followers who all need the same update?"
+ cache the update once and distribute through multiple layers
+- "How do you maintain message ordering across distributed servers?"
+Vector clocks or logical timestamps help establish ordering relationships between messages. Each server maintains its own clock, and messages include timestamp information that helps recipients determine the correct order.
+
+# Dealing with Contention
+multiple processes compete for the same resource at the same time, like booking the last concert ticket or bidding on an auction item.
+- "read-modify-write cycle" isnt "atomic" leading to issues
+- Conditional Writes: Guard the resource people are fighting over
+    > Transactions
+    > UPDATE tickets
+    SET status = 'sold', user_id = 'user123'
+    WHERE concert_id = 'weeknd_tour'
+    AND seat_number = 'A15'
+    AND status = 'available';
+- Pessimistic Locking
+    > explicit row lock acquires locks up front
+    > Pesimistic = assumes conflicts will happen and blocks them
+    >   BEGIN TRANSACTION;
+
+        -- Lock the open seats in this section while we pick a block
+        SELECT seat_number FROM seats
+        WHERE concert_id = 'weeknd_tour'
+        AND section = 'floor'
+        AND status = 'available'
+        FOR UPDATE;
+
+        -- App scans the result, finds A15-A18 open and adjacent, then claims them
+        UPDATE seats
+        SET status = 'sold', user_id = 'user123'
+        WHERE concert_id = 'weeknd_tour'
+        AND seat_number IN ('A15', 'A16', 'A17', 'A18');
+
+        COMMIT;
+    > "FOR UPDATE": locks every row the SELECT returns
+- Optimistic concurrency control (OCC)
+    > assumes conflicts are rare and detects them after the fact instead of blocking to prevent them
+    > version number
+- Isolation Levels
+    > READ UNCOMMITTED - Can see uncommitted changes from other transactions (rarely used)
+    > READ COMMITTED - Can only see committed changes (default in PostgreSQL)
+    > REPEATABLE READ - Same data read multiple times within a transaction stays consistent (default in MySQL)
+    > SERIALIZABLE - Strongest isolation, transactions appear to run one after another
+- Distributed Locks
+    > Redis with TTL
+    > Database columns - If you're already on a database, a lock is just two columns on the row, one for who holds it and one for when the hold expires
+    > ZooKeeper/etcd - These are purpose-built coordination services designed specifically for distributed systems
+- "How do you prevent deadlocks with pessimistic locking?"
+ordered locking, which means always acquiring locks in a consistent order regardless of your business logic flow
+- "How do you handle the ABA problem with optimistic concurrency?"
+a dedicated version column that increments on every update, regardless of whether any business data changed
+- "What about performance when everyone wants the same resource?"
+queue to follow taylor swift w/ eventual consistency
+
+# Multi Step Processes
+Common Example: Amazon
+    Charge Payment -> Reserve Inventory -> Create Label -> Pick nad Pack -> Send confirmation email -> wait for pickup
+Solutions
+    - Single Server Primitives (API server talks to Payment service, inventory service, shipping service, etc)
+    - Saga Pattern
+        > Choreography
+        > Event-Driven Choreography
+            Kafka log, our workers (Pyment, Inventory, Shipping) then all start working on it
+            Workers consume events
+        > Orchestration
+        > Workflow:  a reliable, long-running process that can survive failures and continue where it left off
+    - AWS Step Functions is the managed, serverless counterpart. You define workflows as state machines in JSON,
+Interview Examples
+    - Payment systems
+    - Human-in-the-loop workflows (Uber)
+When not to use
+- Simple async processing: If you just need to resize an image or send an email, use a message queue. Workflows are overkill for single-step operations.
+- "What happens if the process running your saga crashes partway through?"
+The fix is durable progress. You record which steps have completed to a store that survives the crash, so on restart the coordinator reads that record and knows exactly where it left off.
+- "How will you handle updates to the workflow?"
+versioning of workflow
+- "How do we deal with external events?" "Your workflow needs to wait for a customer to sign documents. They might take 5 minutes or 5 days. How do you handle this efficiently?"
+External systems deliver signals through the workflow engine's API.
+- "How can we ensure X step runs exactly once?"
+idempotent
+Storing off a key to a database (e.g. the idempotency key of the email) and then checking if it exists before performing the irreversible action is a common pattern to accomplish this.
+
+# Managing Long Running Tasks
+- "Generate PDF Report" -> Job Queue -> Workers -> Update Job Status in Database & create Job ID
+- How to
+    1) Message Queue
+    2) Pool of Workers
+- Kafka Queue
+- Workers
+    > "Normal" servers
+    > Serverless functions (Lambda, cloud functions) - Each job triggers a function execution that scales automatically
+    > Container-based workers (on Kubernetes or ECS)
+- How it works
+    1) Web server creates job record in database (status "pending")
+    2) Server pushes message to queue w/ Job ID
+    3) Server returns Job ID to client immediately
+    4) Worker pulls messages from queue, fetches job details from database
+    5) Worker updates job status to "processing"
+    6) Worker does stuff.....
+    7) Worker stores result (in s3 for files, database for metadata, etc)
+    8) Worker updates job status to "completed" or "fail"
+- When to use Long Running Tasks
+    > When they mention specific slow operations - The moment you hear "video transcoding", "image processing", "PDF generation", "sending bulk emails", or "data exports"
+    > When they ask about scale or failures - "With async workers, if one crashes mid-job, another worker picks it up from the queue. No user requests are lost."
+- "what happens if the worker crashes while working the job?"
+the job will be restarted by another worker
+- "What happens if a job keeps failing? Maybe there's a bug in your code or bad input data that crashes the worker every time."
+Dead Letter Queue (DLQ). After a job fails a certain number of times (typically 3-5), you move it to a separate queue instead of retrying again
+- Preventing Duplicate Work
+ Idempotency keys (combining user ID + action + timestamp)
+-  "Some of your PDF reports take 5 seconds, but end-of-year reports take 5 hours. They're all in the same queue. What problems does this cause?"
+The solution is to separate queues by job type or expected duration. Quick reports go to a "fast" queue with many workers. Complex reports go to a "slow" queue with fewer, beefier workers

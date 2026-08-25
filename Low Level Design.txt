@@ -1,3 +1,14 @@
+Java
+- OOPS basics
+- Multithreading
+    Volatile keyword: a volatile variable reads from Main RAM, not a CPU cache
+        private volatile boolean active = true
+        use when written one 1 thread and read by Many threads
+    print 1 to 100 multithreaded
+    print odd/even numbers in multiple threads one by one
+- Garbage collection
+- Memory Model
+
 Creation Patterns 
 - Singleton: Class has 1 instane and a global point of access
     Interviewers will ask you to write a thread-safe implementation. 
@@ -171,13 +182,3 @@ Concurrency
 
 
 
-Java
-- OOPS basics
-- Multithreading
-    Volatile keyword: a volatile variable reads from Main RAM, not a CPU cache
-        private volatile boolean active = true
-        use when written one 1 thread and read by Many threads
-    print 1 to 100 multithreaded
-    print odd/even numbers in multiple threads one by one
-- Garbage collection
-- Memory Model

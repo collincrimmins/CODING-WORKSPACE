@@ -34,7 +34,12 @@ public class ParkingSpace {
     }
 
     public boolean isOccupied() {
-        return occupied;
+        rwLock.readLock().lock();
+        try {
+            return occupied;
+        } finally {
+            rwLock.readLock().unlock();
+        }
     }
 
     public VehicleSize getSpaceSize() {
@@ -42,6 +47,7 @@ public class ParkingSpace {
     }
 
     // Set Vehicle to Space
+    // writeLock = only 1 thread can check-and-write to this space
     public void setVehicle(Vehicle vehicle) {
         rwLock.writeLock().lock();
 
@@ -59,8 +65,14 @@ public class ParkingSpace {
     }
 
     public void exitSpace() {
-        occupied = false;
-        licensePlate = "";
+        rwLock.writeLock().lock();
+
+        try {
+            occupied = false;
+            licensePlate = "";
+        } finally {
+            rwLock.writeLock().unlock();
+        }
     }
 
     public String getLicensePlate() {
@@ -69,7 +81,13 @@ public class ParkingSpace {
 
     // Exit Space
     public void setEmptySpace() {
-        occupied = false;
-        licensePlate = "";
+        rwLock.writeLock().lock();
+
+        try {
+            occupied = false;
+            licensePlate = "";
+        } finally {
+            rwLock.writeLock().unlock();
+        }
     }
 }
