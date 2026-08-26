@@ -57,6 +57,12 @@ public class FileSystem {
         // Iterate
         Folder current = root;
         for (String nextFolderName : pathNames) {
+            // Slashes
+            if (nextFolderName.length() == 0) {
+                 throw new RuntimeException("Invalid path name, multiple /");
+            }
+
+            // No Child
             if (!current.hasChild(nextFolderName)) {
                 throw new RuntimeException("Path is invalid at folder name: " + nextFolderName);
             }
