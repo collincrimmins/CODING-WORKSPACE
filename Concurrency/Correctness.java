@@ -27,7 +27,7 @@ class TicketBooking {
 // Read-Write Locks = 100:1 read-write systems
 // Reads = Shared Threads
 // Writes = Exclusive
-class Cache {
+class CacheExample {
     private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
     private final Map<String, String> data = new HashMap<>();
 

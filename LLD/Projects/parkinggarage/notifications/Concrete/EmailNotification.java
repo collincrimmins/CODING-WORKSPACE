@@ -6,7 +6,7 @@ public class EmailNotification implements NotificationObservor {
 
     @Override
     public void update(String text) {
-        System.out.println("[Email Notification] " + text);
+        //System.out.println("[Email Notification] " + text);
     }
    
 }

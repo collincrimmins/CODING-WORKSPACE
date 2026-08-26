@@ -10,7 +10,7 @@ public class TextNotification implements NotificationObservor {
 
     @Override
     public void update(String text) {
-        System.out.println("[Text Notification] " + text);
+        //System.out.println("[Text Notification] " + text);
     }
    
 }

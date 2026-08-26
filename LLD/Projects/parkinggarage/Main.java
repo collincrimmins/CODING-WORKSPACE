@@ -35,13 +35,14 @@ public class Main {
         // Create Parking Garage
         ParkingGarage garage = new ParkingGarage.Builder()
                                     .addFloor(1, 1, 1, 1)
-                                    .addFloor(2, 1, 1, 1)
-                                    .addFloor(3, 1, 1, 1)
+                                    //.addFloor(2, 1, 1, 1)
+                                    //.addFloor(3, 1, 1, 1)
                                     .build();
-        garage.printGarageInfo();
+        //garage.printGarageInfo();
 
         // Create Vehicles
         Vehicle car1 = VehicleFactory.createVehicle("ABCDEF", VehicleSize.MEDIUM);
+        Vehicle car2 = VehicleFactory.createVehicle("ABCDEFfwef", VehicleSize.MEDIUM);
         Vehicle truck1 = VehicleFactory.createVehicle("JGIREK", VehicleSize.LARGE);
         Vehicle bike1 = VehicleFactory.createVehicle("123456", VehicleSize.SMALL);
 
@@ -61,8 +62,30 @@ public class Main {
 
         // Exit my cars
         //garage.vehicleExitParkingGarage(bike1, new CashPayment());
-        //garage.vehicleExitParkingGarage(car1, new CashPayment());
+        garage.vehicleExitParkingGarage(car1, new CashPayment());
         //garage.vehicleExitParkingGarage(truck1, new CreditCardPayment());
+
+
+        // Concurrency Test
+        boolean runConcurrenyTest = true;
+
+        if (runConcurrenyTest) {
+            ParkingSpace space = new ParkingSpace(VehicleSize.MEDIUM);
+            new Thread(() -> {
+                space.setVehicle(car1);
+            }).start();
+
+            new Thread(() -> {
+                try {
+                    // One of the threads will win, the other will hit the `if (occupied)` check
+                    // and throw a RuntimeException!
+                    space.setVehicle(car2); 
+                } catch (Exception e) {
+                    System.out.println("Caught expected concurrency collision: " + e.getMessage());
+                }
+            }).start();
+        }
+        
 
         garage.printGarageInfo();
     }

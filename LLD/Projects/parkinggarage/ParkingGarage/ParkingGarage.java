@@ -70,7 +70,7 @@ public class ParkingGarage {
         // Send Notification
         vehicle.getNotificationObservor().update(vehicle.getLicensePlate() + " has exited the garage");
 
-        System.out.println("Succesfully exited " + vehicle.getLicensePlate());
+        //System.out.println("Succesfully exited " + vehicle.getLicensePlate());
     }
 
     // Print
@@ -79,7 +79,12 @@ public class ParkingGarage {
         for (ParkingFloor floor : floors) {
             System.out.println("Level " + level);
             for (ParkingSpace space : floor.getParkingSpaces()) {
-                System.out.println("- Space [" + space.getSpaceSize() + "]: occupied " + space.isOccupied());
+                if (space.isOccupied()) {
+                    System.out.println("- Space [" + space.getSpaceSize() + "]: " + space.getLicensePlate());
+                } else {
+                    System.out.println("- Space [" + space.getSpaceSize() + "]: {}");
+                }
+                
             }
             level = level + 1;
         }

@@ -10,7 +10,7 @@ import LLD.Projects.parkinggarage.enums.VehicleSize;
 
 public class ParkingSpace {
     // Attributes
-    private VehicleSize spaceSize;
+    private final VehicleSize spaceSize;
     private boolean occupied;
 
     // Vehicle
@@ -25,29 +25,8 @@ public class ParkingSpace {
         occupied = false;
         licensePlate = "";
     }
-
-    public boolean canFitCar(Vehicle vehicle) {
-        if (spaceSize == vehicle.getVehicleSize()) {
-            return true;
-        }
-        return false;
-    }
-
-    public boolean isOccupied() {
-        rwLock.readLock().lock();
-        try {
-            return occupied;
-        } finally {
-            rwLock.readLock().unlock();
-        }
-    }
-
-    public VehicleSize getSpaceSize() {
-        return spaceSize;
-    }
-
-    // Set Vehicle to Space
-    // writeLock = only 1 thread can check-and-write to this space
+    
+    // Concurrency (occupied, licensePlate)
     public void setVehicle(Vehicle vehicle) {
         rwLock.writeLock().lock();
 
@@ -56,7 +35,7 @@ public class ParkingSpace {
                 throw new RuntimeException("[Error] occupied parking space");
             }
 
-            System.err.println("Succesfully parked " + vehicle.getLicensePlate() + " in space size " + vehicle.getVehicleSize());
+            //System.err.println("Succesfully parked " + vehicle.getLicensePlate() + " in space size " + vehicle.getVehicleSize());
             occupied = true;
             licensePlate = vehicle.getLicensePlate();
         } finally {
@@ -68,26 +47,44 @@ public class ParkingSpace {
         rwLock.writeLock().lock();
 
         try {
+            if (!occupied) {
+                throw new RuntimeException("[Error] Space is already empty!");
+            }
+
             occupied = false;
             licensePlate = "";
         } finally {
-            rwLock.writeLock().unlock();
+           rwLock.writeLock().unlock();
+        }
+    }
+
+    public boolean isOccupied() {
+        rwLock.readLock().lock();
+        try {
+            return occupied;
+        } finally {
+            rwLock.readLock().unlock();
         }
     }
 
     public String getLicensePlate() {
-        return licensePlate;
+        rwLock.readLock().lock();
+        try {
+            return licensePlate;
+        } finally {
+            rwLock.readLock().unlock();
+        }
     }
 
-    // Exit Space
-    public void setEmptySpace() {
-        rwLock.writeLock().lock();
-
-        try {
-            occupied = false;
-            licensePlate = "";
-        } finally {
-            rwLock.writeLock().unlock();
+    // Getters
+    public boolean canFitCar(Vehicle vehicle) {
+        if (spaceSize == vehicle.getVehicleSize()) {
+            return true;
         }
+        return false;
+    }
+
+    public VehicleSize getSpaceSize() {
+        return spaceSize;
     }
 }
