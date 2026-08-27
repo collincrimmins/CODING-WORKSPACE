@@ -27,8 +27,8 @@ public class Main {
     */
 
     public static void main(String[] args) throws IOException {
-        String LogAll = "C:\\Users\\colli\\Documents\\Software Projects\\LEETCODE JAVA\\Projects\\logger\\logsExample\\LogsAll.log";
-        String LogError = "C:\\Users\\colli\\Documents\\Software Projects\\LEETCODE JAVA\\Projects\\logger\\logsExample\\LogsError.log";
+        String LogAll = "C:\\Users\\colli\\Documents\\Software Projects\\CODING-WORKSPACE\\Projects\\logger\\logsExample\\LogsAll.log";
+        String LogError = "C:\\Users\\colli\\Documents\\Software Projects\\CODING-WORKSPACE\\Projects\\logger\\logsExample\\LogsError.log";
 
         List<Destination> dests = new ArrayList<>();
 
@@ -38,7 +38,7 @@ public class Main {
 
         // All & Console
         Destination dest3 = new Destination(new PlainTextFormatter(), LogLevel.DEBUG, new SinkConsole());
-        dests.add(dest3);
+        dests.add(dest3); 
 
         // Error & File
         Destination dest2 = new Destination(new PlainTextFormatter(), LogLevel.ERROR, new SinkFile(LogError));
@@ -56,7 +56,6 @@ public class Main {
 
         Thread thread2 = new Thread(() -> {
             logger.info("ThreadTest Thread 2");
-            logger.error("Error!!!");
         });
         thread2.start();
     }
