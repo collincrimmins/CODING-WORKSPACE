@@ -34,7 +34,7 @@ public class Main {
 
         // All & File
         Destination dest1 = new Destination(new PlainTextFormatter(), LogLevel.DEBUG, new SinkFile(LogAll));
-        dests.add(dest1);
+        dests.add(dest1); 
 
         // All & Console
         Destination dest3 = new Destination(new PlainTextFormatter(), LogLevel.DEBUG, new SinkConsole());
