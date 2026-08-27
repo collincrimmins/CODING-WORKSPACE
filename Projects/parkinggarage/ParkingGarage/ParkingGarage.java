@@ -1,0 +1,113 @@
+package Projects.parkinggarage.ParkingGarage;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import Projects.parkinggarage.Fee.FeeStrategy;
+import Projects.parkinggarage.Fee.Concrete.SmallFee;
+import Projects.parkinggarage.ParkingFloor.ParkingFloor;
+import Projects.parkinggarage.ParkingSpace.ParkingSpace;
+import Projects.parkinggarage.Payments.PaymentStrategy;
+import Projects.parkinggarage.Payments.Concrete.CashPayment;
+import Projects.parkinggarage.Vehicles.Vehicle;
+import Projects.parkinggarage.enums.VehicleSize;
+
+public class ParkingGarage {
+    List<ParkingFloor> floors;
+
+    // Constructor
+    private ParkingGarage() {
+        // Create Garage
+        floors = new ArrayList<>();
+    }
+
+    // Get List of Floors
+    public List<ParkingFloor> getFloors() {
+        return floors;
+    }
+
+    // Find Space
+    // synchronized = only 1 thread can find the next open space
+    public synchronized ParkingSpace getOpenParkingSpace(Vehicle vehicle) {
+        // Check Vehicle is not already parked
+        if (vehicle.getParkingSpace() != null) {
+            System.out.println("X - Vehicle " + vehicle.getLicensePlate() + " is already parked");
+            return null;
+        }
+
+        // Find Space
+        for (ParkingFloor floor : floors) {
+            for (ParkingSpace space : floor.getParkingSpaces()) {
+                // Park in my Space Size
+                if (space.canFitCar(vehicle)) {
+                    if (!space.isOccupied()) {
+                        space.setVehicle(vehicle);
+                        vehicle.setParkingSpace(space);
+                        return space;
+                    }
+                }
+            }
+        }
+
+        // No Space
+        System.out.println("X - No available space for vehicle size of " + vehicle.getVehicleSize());
+        return null;
+    }
+
+    // Exit Car
+    public void vehicleExitParkingGarage(Vehicle vehicle, PaymentStrategy paymentStrategy) {
+        // Exit Space
+        ParkingSpace space = vehicle.getParkingSpace();
+        space.exitSpace();
+        
+        // Charge Fee on Exit
+        int numHours = 2;
+        double fee = vehicle.getFeeStrategy().calculatePayment(numHours);
+        paymentStrategy.pay(fee);
+
+        // Send Notification
+        vehicle.getNotificationObservor().update(vehicle.getLicensePlate() + " has exited the garage");
+
+        //System.out.println("Succesfully exited " + vehicle.getLicensePlate());
+    }
+
+    // Print
+    public void printGarageInfo() {
+        int level = 1;
+        for (ParkingFloor floor : floors) {
+            System.out.println("Level " + level);
+            for (ParkingSpace space : floor.getParkingSpaces()) {
+                if (space.isOccupied()) {
+                    System.out.println("- Space [" + space.getSpaceSize() + "]: " + space.getLicensePlate());
+                } else {
+                    System.out.println("- Space [" + space.getSpaceSize() + "]: {}");
+                }
+                
+            }
+            level = level + 1;
+        }
+    }
+
+    // Builder
+    public static class Builder {
+        ParkingGarage garage;
+
+        public Builder() {
+            // Create Garage
+            this.garage = new ParkingGarage();
+        }
+
+        public Builder addFloor(int floorNumber, int numSmall, int numMedium, int numLarge) {
+            // Add Floor
+            ParkingFloor newFloor = new ParkingFloor(floorNumber, numSmall, numMedium, numLarge);
+            garage.floors.add(newFloor);
+            return this;
+        }
+
+        public ParkingGarage build() {
+            return garage;
+        }
+    }
+}
