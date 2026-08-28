@@ -2,132 +2,135 @@ package Projects.lrucache;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class LRUCache<K, V> implements Cache<K, V> {
+public class LRUCache<KeyType, ValueType> {
+    // Cache
     private final int capacity;
-    private Node head;
-    private Node tail;
-    private Map<K, Node> map;
+    private final Map<KeyType, Node> map;
+    // LinkedList
+    private final Node head; // Sentinel Head (newest)
+    private final Node tail; // Sentinel Tail (oldest)
 
     public LRUCache(int capacity) {
         if (capacity <= 0) {
-            throw new IllegalArgumentException("Capacity must be greater than 0");
+            throw new IllegalArgumentException("Invalid capacity");
         }
 
         this.capacity = capacity;
-        map = new HashMap<>();
-        head = null;
-        tail = null;
+        this.map = new HashMap<>();
+        this.head = new Node(null, null);
+        this.tail = new Node(null, null);
+        this.head.next = tail;
+        this.tail.prev = head;
     }
 
-    @Override
-    public int size() {
-        return map.size();
-    }
-
-    @Override
-    public int capacity() {
-        return capacity;
-    }
-
-    @Override
-    public V get(K key) {
-        //System.out.println("get " + key);
-
-        if (map.containsKey(key)) {
-            // Readd to Head
-            V value = remove(key);
-            add(key, value);
-            return value;
-        } else {
+    // LRUCache
+    
+    public synchronized ValueType get(KeyType key) {
+        // Check Exists
+        if (!map.containsKey(key)) {
             return null;
         }
+
+        // Get Node
+        Node node = map.get(key);
+
+        // Move to Front
+        moveToFront(node.key);
+
+        return node.value;
     }
-
-    @Override
-    public void put(K key, V value) {
-        //System.out.println("put " + key);
-
-        // Remove Existing
+    
+    public synchronized void put(KeyType key, ValueType value) {
         if (map.containsKey(key)) {
             remove(key);
         }
 
+        // Add to Head
         add(key, value);
-        
-        //System.out.println(map.toString());
 
+        // Remove Greater Than Capacity
         if (map.size() > capacity) {
-            remove(tail.key);
+            KeyType lruKey = tail.prev.key;
+            remove(lruKey);
         }
     }
 
-    @Override
-    public V delete(K key) {
-        if (map.get(key) == null) {
-            return null;
+    public synchronized void delete(KeyType key) {
+        if (map.containsKey(key)) {
+            remove(key);
         }
-
-        V value = map.get(key).value;
-        remove(key);
-        return value;
     }
 
-    void add(K key, V value) {
+    public synchronized int size() {
+        return map.size();
+    }
+
+    public synchronized void printLinkedList() {
+        Node current = head.next;
+        String path = "";
+
+        while (current != tail) {
+            path = path + " (" + current.key + " : " + current.value + ") --->";
+
+            current = current.next;
+        }
+
+        System.out.println("");
+        System.out.println("=== LinkedList ===");
+        System.out.println(path);
+    }
+
+    // Linked List
+
+    private Node add(KeyType key, ValueType value) {
         Node node = new Node(key, value);
 
-        if (head == null && tail == null) {
-            head = node;
-            tail = node;
-            // Initialize List
-        } else {
-            // Add to Head
-            head.prev = node;
-            node.next = head;
-            head = node;
-        }
+        // Add to Head
+        node.prev = head;
+        node.next = head.next;
+        head.next.prev = node;
+        head.next = node;
 
         // Add to Map
-        map.put(key, node);
+        map.put(node.key, node);
 
-        //System.out.println(map.toString());
+        return node;
     }
 
-    V remove(K key) {
-        //System.out.println("removing " + key);
+    private void remove(KeyType key) {
+        Node node = map.get(key);
 
-        // Remove from Middle of List
-        Node removingThisNode = map.get(key);
-        Node myPrev = removingThisNode.prev;
-        Node myNext = removingThisNode.next;
-        if (myPrev != null) {
-            myPrev.next = removingThisNode.next;
-        }
-        if (myNext != null) {
-            myNext.prev = removingThisNode.prev;
-        }
-
-        // Update Head & Tail
-        if (removingThisNode == head) {
-            head = removingThisNode.next;
-        }
-        if (removingThisNode == tail) {
-            tail = removingThisNode.prev;
-        }
+        // Remove from LinkedList
+        node.prev.next = node.next;
+        node.next.prev = node.prev;
 
         // Remove from Map
-        map.remove(key);
+        map.remove(node.key);
+    }
 
-        return removingThisNode.value;
+    private void moveToFront(KeyType key) {
+        Node node = map.get(key);
+
+        // Remove from LinkedList
+        node.prev.next = node.next;
+        node.next.prev = node.prev;
+
+        // Add to Head
+        node.prev = head;
+        node.next = head.next;
+        head.next.prev = node;
+        head.next = node;
     }
 
     private class Node {
-        K key;
-        V value;
-        Node next;
+        KeyType key;
+        ValueType value;
         Node prev;
+        Node next;
 
-        public Node(K key, V value) {
+        public Node(KeyType key, ValueType value) {
             this.key = key;
             this.value = value;
         }

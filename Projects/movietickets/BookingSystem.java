@@ -77,7 +77,7 @@ public class BookingSystem {
     public List<MovieEvent> search(String title) {
         List<MovieEvent> result = new ArrayList<>();
         for (MovieEvent event : movieEvents) {
-            if (event.getMovie().getName() == title) {
+            if (event.getMovie().getName().equals(title)) {
                 // Found MovieEvent
                 result.add(event);
             }

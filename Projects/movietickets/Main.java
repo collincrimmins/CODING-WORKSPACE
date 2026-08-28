@@ -25,7 +25,7 @@ public class Main {
     */
 
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         BookingSystem system = new BookingSystem();
 
         // Create Theaters
@@ -68,6 +68,9 @@ public class Main {
             //System.out.println(reservationThread2);
         });
         thread2.start();
+
+        thread1.join();
+        thread2.join();
 
         System.out.println("-> Concurrency Test for A1");
         movieEventConcurrency.printMovieEventSeats();

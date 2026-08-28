@@ -1,4 +1,4 @@
-package Projects.lrucache;
+package Projects.lrucache.old;
 
 public interface Cache<K, V> {
     V get(K key);
