@@ -11,10 +11,10 @@ public class Logger {
     }
 
     private void write(LogLevel logLevel, String text) {
-        LogRecord logRecord = new LogRecord(logLevel, text);
+        Log log = new Log(logLevel, text);
 
         for (Destination dest : destinations) {
-            dest.write(logRecord);
+            dest.write(log);
         }
     }
 

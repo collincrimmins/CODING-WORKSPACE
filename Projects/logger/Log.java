@@ -2,16 +2,18 @@ package Projects.logger;
 
 import java.time.Instant;
 
-public class LogRecord {
+public class Log {
     private final Instant timestamp;
     private final String text;
     private final String threadName;
     private final LogLevel logLevel;
     
-    public LogRecord(LogLevel logLevel, String text) {
+    public Log(LogLevel logLevel, String text) {
+        // Inputs
         this.logLevel = logLevel;
         this.text = text;
 
+        // Set Automatically
         this.timestamp = Instant.now();
         this.threadName = Thread.currentThread().getName();
     }

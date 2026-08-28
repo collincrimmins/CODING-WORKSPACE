@@ -9,13 +9,11 @@ public class Main {
         Prompt: Design a logging service. Or call it a logger, whichever you prefer.
 
         Requirements:
-        - Users can add to the log
-        - Severity Levels: DEBUG, INFO, WARN, ERROR, FATAL
-        - Logger writes each record to one or more destinations (fan-out) to types (file/console), set at startup.
-        - Each destination has its own min-level threshold and its own format.
-            Format and destination type vary independently.
-        - Concurrent calls are safe. A record's bytes never interleave with
-            another record's bytes on the same destination.
+        - Log Types (INFO, WARN, ERROR) w/ increasing severity number
+            Print to all Log Destination with atleast the same severity number
+        - Output to different types (Console or FileWrite)
+        - LogSystem has a List of all output destination created at instantation
+        - Strategy Pattern: Multiple methods of formatting Log Text (Plaintext, json)
 
         Entities:
         - logger (service)
@@ -23,6 +21,14 @@ public class Main {
         - sink (file or console)
         - loggerlevel (debug, info, ...)
         - format (plaintext)
+
+        - Question: "How would you make log() non-blocking?"
+            BlockingQueue in Destination, so that a worker is asynchronously working through the queue.
+            Adding to the Queue is instant.
+
+        - Question: "How would you support hierarchical named loggers?"
+        Answer: We add a "name" field to our LoggerService, and then use a Factory.
+            LoggerFactory.getLogger("com.app.service.payments")
 
     */
 
@@ -46,14 +52,15 @@ public class Main {
 
         // Logger
         Logger logger = new Logger(dests);
-        //logger.info("hello this is info");
+        
+        // Severity ERROR(4) will show up in both LogAll and LogError
+        logger.error("hello this is info");
 
         // Threads
         Thread thread1 = new Thread(() -> {
             logger.info("ThreadTest Thread 1");
         });
         thread1.start();
-
         Thread thread2 = new Thread(() -> {
             logger.info("ThreadTest Thread 2");
         });

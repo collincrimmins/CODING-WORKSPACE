@@ -2,7 +2,7 @@ package Projects.logger;
 
 public class JsonFormatter implements Formatter {
     @Override
-    public String formatLogText(LogRecord record) {
+    public String formatLogText(Log record) {
         return "{"
             + "\"timestamp\":\"" + escape(record.getTimestamp().toString()) + "\","
             + "\"level\":\"" + record.getLogLevel() + "\","

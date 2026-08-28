@@ -15,14 +15,15 @@ public class Destination {
         this.lock = new ReentrantLock();
     }
 
-    public void write(LogRecord logRecord) {
-        if (!logRecord.getLogLevel().isAtleastSeverity(logLevel)) {
+    public void write(Log log) {
+        if (!log.getLogLevel().isAtleastSeverity(logLevel)) {
             return;
         }
+
+        String formattedText = formatter.formatLogText(log);
         
         lock.lock();
         try {
-            String formattedText = formatter.formatLogText(logRecord);
             sink.write(formattedText);
         } catch (Exception e) {
             System.err.println("error in logging: " + e.getMessage());

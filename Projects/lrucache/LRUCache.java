@@ -1,4 +1,4 @@
-package Projects.cache;
+package Projects.lrucache;
 
 import java.util.HashMap;
 import java.util.Map;

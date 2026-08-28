@@ -1,4 +1,4 @@
-package Projects.cache;
+package Projects.lrucache;
 
 public interface Cache<K, V> {
     V get(K key);

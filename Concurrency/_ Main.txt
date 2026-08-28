@@ -1,0 +1,38 @@
+Concurrency problems types
+    1) Correctness: problem when shares state gets corrupted
+    2) Cooridnation: threads need to hand off work or wait for eachother
+    3) Scaracity: resources are limit, some resources must wait to access DB
+Concurrency
+- Atomics: thread safe operations on single variables without locks
+    use for counters, flags, simply statistics
+        AtomicInteger counter = new AtomicInteger(0);
+        counter.incrementAndGet();
+- Locks (Mutexes): When a thread holds a lock, other threads trying to acquire it block until the first thread releases. 
+    This creates a critical section where only one thread executes at a time.
+        synchronized (lock) {
+            // Only one thread can be here at a time
+            balance += amount;
+        }
+    Locks are your default tool for protecting shared state
+    coarse grained (one lock for everything)
+    fine grained (per resource lock)
+    read write (multiple readers OR one writer)
+- Sempahors: counting locks. when permits hit zero, thread block until someone released
+    Semaphore permits = new Semaphore(5);  // Allow 5 concurrent operations
+    permits.acquire();  // Block if no permits available
+    try {
+        doWork();
+    } finally {
+        permits.release();  // Always release, even on exception
+    }
+- Condition variables: Condition variables let threads wait efficiently for a condition to become true
+    synchronized (lock) {
+        while (!condition) {
+            lock.wait();  // Release lock and sleep
+        }
+        // Condition is now true
+    }
+- Blocking Queues:  
+    BlockingQueue<Task> queue = new LinkedBlockingQueue<>(100);
+    queue.put(task);   // Blocks if queue is full
+    Task t = queue.take();  // Blocks if queue is empty
