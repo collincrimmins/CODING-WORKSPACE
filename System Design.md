@@ -1,43 +1,53 @@
 Main Patterns
-- File Storage (S3)
-    > Presigned URL for Upload/Download
-- Cache
-    > Redis with TTL (cache-aside)
+- Cache (Redis)
+    > Distributed Lock ("ticket123: locked")
     > Location Cache (Redis Geohash)
-- Distributed Lock
-    > Redis ("ticket1" : "user_id")
-- Database Row Locking
-    > Pesimistic vs Optimistic locking
+    > Rate Limiting
+        - Token Bucket
+    > Hot Key: Multiple Cache Nodes (cache key fanout) and load balance reads across the nodes. (feed:taylor-swift:1, feed:taylor-swift:2)
+- Elasticsearch
+    > Text Search (& Fuzzy Search): Inverted Index
+    > Properties: An index on the field
+    > Locations: Geospatial Index (geohash)
+- Queue & Workers
+    > Queue (Ticketmaster Queue)
+    > Async Processes (Videos)
+    > JobID + Status (processsing | finished)
+- File Storage (S3)
+    > "Presigned/Signed URL" for Upload/Download
+        + S3 Multipart Uploads (chunks)
+        + S3 Event Notifications (upload completed)
+    > "Signatures" for CDNs (AWS CloudFront)
 - Cron Job
     > Update XYZ row property every 1 hour
-- Elasticsearch
-    > Inverted Index for Text Search
-    > Index on XYZ property
-    > Geospatial Index (geohash)
-- Queue
-    > Waiting in ticket reservation queue for major events
-- Asynchronous Workers w/ Kafka Queue
-    > Async processes (Processing Videos)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+- Feed Systems
+    > Precomputed Feeds (& Workers adding new posts to all existing feeds)
+- Indexes
+    > Composite Primary Key
+        PRIMARY KEY (post_id, user_id) - User can only like a post once
+        PRIMARY KEY (follower_id, followee_id)
+    > Composite Indexes
+        CREATE INDEX searchIndex1 ON comments (post_id, created_at DESC)
+    > Geospatial Index (PostGIS)
+    > Text Index (GIN Index)
+- Scaling Writes
+    > Sharding & Partitioning
+        Horizontal Sharding
+        Partitioning Key - like a userid/postid
+    > Batching Writes
+- Real Time Updates
+    > Simple Polling & Long Polling
+    > Server Sent Events (SSE)
+    > Websockets
+        - Redis Pub/Sub: for tracking the connection (by userid)
+        - Load Balancer: use "Least Connections" since websockets is stateful
+    > WebRTC: Peer-to-Peer (Video Calls)
+- Dealing with Contention
+    > Atomic: All changes happen or none happen
+    > Transactions (read-modify-write)
+    > Pessimistic Locking: row lock upfront
+    > Optimistic Locking: assumes rare collisions, so detect after transaction is complete, then do actions (like version numbers)
+    > Hot Key: Queue to check status for Taylor Swift tickets (eventual consistency)
 
 
 
@@ -74,35 +84,6 @@ Systems Design
 4) Data Flow
 5) High Level Design
 6) Deep dives...
-
-
-Common Patterns
-- Pushing Realtime Updates
-    Server Sent Events: pushing from Server-to-Client
-        you want clients to get notifications or events as soon as they happen
-    Websockets: persistent bi-directlional client-and-server
-- Long Running Tasks
-    Server creates Job ID
-    Workers complete job in Job Queue
-    Push to Database
-- Dealing with Contention
-    locks
-- Scaling Reads
-    Cache
-    CDNs
-    Database Indexes or Denormalization
-    Read replicas
-- Scaling Writes
-    Horizontal Sharding
-    Vertical Partitioning
-    write bursts handled by queues
-- Handling large blobs
-    > server created presigned-URLs so clients can upload directly to blob storage like S3 (not letting server be a middleman)
-    > client downloads come from signed URLs for access control
-- Multistep Processes
-    system must guarantee exactly-once execution and maintains complete audit trails
-- Proximity Based Services
-
 
 
 
@@ -796,3 +777,116 @@ Dead Letter Queue (DLQ). After a job fails a certain number of times (typically 
  Idempotency keys (combining user ID + action + timestamp)
 -  "Some of your PDF reports take 5 seconds, but end-of-year reports take 5 hours. They're all in the same queue. What problems does this cause?"
 The solution is to separate queues by job type or expected duration. Quick reports go to a "fast" queue with many workers. Complex reports go to a "slow" queue with fewer, beefier workers
+
+# Elasticsearch
+- Document
+    {
+        "id": "XYZ123",
+        "title": "The Great Gatsby",
+        "author": "F. Scott Fitzgerald",
+        "price": 10.99,
+        "createdAt": "2024-01-01T00:00:00.000Z"
+    }
+- Index: Collection of Documents ("Books")
+- Mapping: Schema of an index
+    "properties": {
+        "id": { "type": "keyword" },
+        "title": { "type": "text" },
+        "author": { "type": "text" },
+        "price": { "type": "float" },
+        "createdAt": { "type": "date" }
+    }
+- Geospatial Search
+    > geo_distance() - documents within a radius of a point
+- Sorting
+- Pagination & Cursors
+- Updated by using "CDC (Change Data Capture)"
+- Designed for "read heavy" workloads
+- ElasticSearch is Eventual Consistency
+
+# PostgreSQL
+- Full Text earch (GIN indexes)
+- Geospatial Search (PostGIS)
+- Covering Index: store all the data we need right in the index itself
+    // A covering index that includes all needed columns
+    CREATE INDEX idx_posts_user_include 
+    ON posts(user_id) INCLUDE (title, created_at);
+- Partial Index
+    -- Standard index indexes everything
+    CREATE INDEX idx_users_email ON users(email);  -- Indexes ALL users
+
+    -- Partial index only indexes active users
+    CREATE INDEX idx_active_users 
+    ON users(email) WHERE status = 'active';  -- Smaller, faster index
+- Writes
+    - Sharding: multiple PostgreSQL instances (rather than 1 instance)
+        Shard by "user_id"
+    - Vertical Scaling: Better hardware for our node
+    - Batching: many operations executed in 1 transaction
+        // Instead of 1000 separate inserts:
+        INSERT INTO likes (post_id, user_id) VALUES 
+        (1, 101), (1, 102), ..., (1, 1000);
+    - Write Offloading: Async writes (adding to a kafka queue)
+        activity logging, analytics, last seen timestamps
+    - Table Partitioning
+        Time Based Partitioning
+            // let's say we have a posts table that grows by millions of rows per month:
+            CREATE TABLE posts (
+                id SERIAL,
+                user_id INT,
+                content TEXT,
+                created_at TIMESTAMP
+            ) PARTITION BY RANGE (created_at);
+
+            -- Create partitions by month
+            CREATE TABLE posts_2024_01 PARTITION OF posts
+                FOR VALUES FROM ('2024-01-01') TO ('2024-02-01');
+- Read Replicas
+    - High Availability
+        - 1 node will be the "Primary" Leader
+    - Our Social Media Feed System can read from Replicas
+- ACID
+    - Transactions
+        - Row Level Locking (during Transactions): "FOR UPDATE"
+            BEGIN;
+            -- Lock the item and get current max bid
+            SELECT maxBid FROM Auction WHERE id = 123 FOR UPDATE;
+
+            -- Place new bid if it's higher
+            INSERT INTO bids (item_id, user_id, amount) 
+            VALUES (123, 456, 100);
+
+            -- Update the max bid
+            UPDATE Auction SET maxBid = 100 WHERE id = 123;
+            COMMIT;
+        - Example
+            BEGIN;
+            UPDATE accounts SET balance = balance - 100 WHERE id = 1;
+            UPDATE accounts SET balance = balance + 100 WHERE id = 2;
+            COMMIT;
+- When to use other databases
+    - Extreme Write Throughput
+        NoSQL databases (like Cassandra) for event streaming
+        Key-value stores (like Redis) for real-time counters       
+    - Global Multi-Region Requirements 
+    - Simple Key-Value Access Patterns
+        Redis for in-memory performance
+        DynamoDB for managed scalability
+        Cassandra for write-heavy workloads
+
+# SQL Basics
+- Many to Many
+    CREATE TABLE likes (
+        user_id INTEGER REFERENCES users(id),
+        post_id INTEGER REFERENCES posts(id),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (user_id, post_id)
+    );
+- Consistency (Data Integrity)
+    balance DECIMAL CHECK (balance >= 0),
+- Isolation (Concurrent Transactions)
+    BEGIN;
+    SET TRANSACTION ISOLATION LEVEL READ COMMITTED;  -- Default level
+    -- or REPEATABLE READ
+    -- or SERIALIZABLE
+    COMMIT;
