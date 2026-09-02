@@ -9,7 +9,10 @@ import java.util.concurrent.TimeUnit;
 
 public class Main {
     /*
-        Design a Cache (or LRU Cache)
+        Prompt: Design and implement an LRU (Least Recently Used) Cache with a fixed capacity.
+         The cache should support fast retrieval and insertion, and automatically evict the 
+         least recently used item when the capacity is exceeded.
+         https://github.com/ashishps1/awesome-low-level-design/blob/main/solutions/java/src/lrucache/README.md 
 
         Requirements
         - Put, Get, Delete by Key & Value (String : String)

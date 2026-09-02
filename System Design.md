@@ -1,10 +1,14 @@
 Main Patterns
 - Cache (Redis)
-    > Distributed Lock ("ticket123: locked")
+    > Distributed Lock 
+        "ticket123: locked"
     > Location Cache (Redis Geohash)
     > Rate Limiting
-        - Token Bucket
-    > Hot Key: Multiple Cache Nodes (cache key fanout) and load balance reads across the nodes. (feed:taylor-swift:1, feed:taylor-swift:2)
+        Token Bucket
+    > Hot Keys
+        - Read/Write: Replicate Hot Keys (nodes) w/ fan-out
+    > Cache Stampede (Thundering Herd)
+        Request coalescing (single flight): Allow only one request to rebuild the cache while others wait for the result. 
 - Elasticsearch
     > Text Search (& Fuzzy Search): Inverted Index
     > Properties: An index on the field
@@ -16,7 +20,7 @@ Main Patterns
 - File Storage (S3)
     > "Presigned/Signed URL" for Upload/Download
         + S3 Multipart Uploads (chunks)
-        + S3 Event Notifications (upload completed)
+        + S3 Event Notifications (metadata status: "finished" | "uploading")
     > "Signatures" for CDNs (AWS CloudFront)
 - Cron Job
     > Update XYZ row property every 1 hour
@@ -31,10 +35,32 @@ Main Patterns
     > Geospatial Index (PostGIS)
     > Text Index (GIN Index)
 - Scaling Writes
-    > Sharding & Partitioning
-        Horizontal Sharding
-        Partitioning Key - like a userid/postid
+    > Sharding w/ Consistent Hashing (writing 10,000/s for 1 node is too much)
     > Batching Writes
+    > Temporary Bursts: Add a Queue
+- Scaling Reads
+    > Indexes
+    > Horizontal Scaling
+        - LeaderNode (Writes) -> Multiple Read Replicas
+        - Sharding
+    > Caches
+        - Tables (posts)
+        - Precomputed Feeds
+- Sharding
+    > Use when we need Infinitely Scaling Read/Writes (if its likely too much for 1 Postgres Instance)
+    > Consistent Hashing
+        - Hash Ring": Spread our Data across any N number of Nodes (not just "key % 5")
+    > Shard Key: "Sharding by Field [user_id]"
+        Shard #1: user_id range 0 -> 1 million
+        Shard #2: user_id range 1 -> 2 million
+        Shard #3: user_id range 2 -> 3 million
+    > Consistent Hashing (Circular)
+    > Reads: Hot Keys
+        - Compound Shard Keys: (key + random_suffix)
+            taylorswift#(1..10)
+            views:video123:(1..10)
+    > Writes: Hot Keys
+        - Write Batching = Delay of 1000ms per like count update
 - Real Time Updates
     > Simple Polling & Long Polling
     > Server Sent Events (SSE)
@@ -48,6 +74,23 @@ Main Patterns
     > Pessimistic Locking: row lock upfront
     > Optimistic Locking: assumes rare collisions, so detect after transaction is complete, then do actions (like version numbers)
     > Hot Key: Queue to check status for Taylor Swift tickets (eventual consistency)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -84,9 +127,6 @@ Systems Design
 4) Data Flow
 5) High Level Design
 6) Deep dives...
-
-
-
 
 Numbers to Know
 Caching
@@ -890,3 +930,88 @@ The solution is to separate queues by job type or expected duration. Quick repor
     -- or REPEATABLE READ
     -- or SERIALIZABLE
     COMMIT;
+
+# Zookeeper
+- All Servers connect to Zookeeper
+- Zookeper runs on a group of servers called an "ensemble"
+    - Leader
+    - Followers
+
+- Persistent ZNodes: These nodes exist until explicitly deleted
+- Ephemeral ZNodes: These are automatically deleted when the session that created them ends (whether through client disconnection or timeout).
+- Sequential ZNodes: These have an automatically appended monotonically increasing counter to their name
+
+- "Watch" mechanism
+    - "Chat Server #2" watches zookeper & keeps a local cache based on Zookeeper's updates
+        // Server 1 watching for user changes
+        zk.getChildren("/chat-app/users", true, null);
+
+- Use Cases
+    - Store Configuration Data across a distributed system
+        Connection Strings
+        Feature Flags: /chat-app/config/max_message_size "1024"
+        Service Endpoints
+    - Smart Routing
+    - Deep Infastructure System Design Interviews
+        "Design a distributed message queue" = Zookeper is the Manager of your system
+            1) Elects Leader
+            2) Manages Configuration of Topics
+        "Design a distributed task scheduler"
+
+- Service Discovery: the process of automatically detecting services and endpoints in a distributed system
+    create -e /chat-app/servers/server2 "192.168.1.102:8080"
+    /streaming
+        /services
+            /video-transcoder
+                /instance1 "10.0.0.1:8080"
+                /instance2 "10.0.0.2:8080"
+            /recommendation-engine
+                /instance1 "10.0.1.1:9000"
+                /instance2 "10.0.1.2:9000"
+            /payment-processor
+                /instance1 "10.0.2.1:5000"
+
+- Distributed Locks
+    While ZooKeeper's locks work well, they're not designed for high-frequency locking (hundreds of times per second). For such use cases, consider specialized solutions like Redis-based locks or database transactions.
+    Choose ZooKeeper locks instead when you need stronger consistency guarantees for critical operations where correctness trumps performance (like financial transactions)
+
+Alternatives
+- etcd - It provides distributed key-value storage with strong consistency, offers modern HTTP/JSON and gRPC APIs, and is optimized for small datasets with high read volumes—ideal for configuration management and service discovery.
+- Cloud Provider Solutions like AWS Parameter Store
+
+# Apache Flink
+- stream processing: You have a continuous flow of data and you want to process, transform, or analyze it in real-time.
+    Kafka -> Tranform Service -> Database
+-  Flink's architecture is designed to provide exactly-once processing guarantees, even in the face of failures, while maintaining high throughput and low latency.
+
+- Example Dataflow
+    1) Clicks Topic (Kafka) (source)
+    .. stream ..
+    2) Partition by Advertisement ID
+    3) Window over 5 minute interval (Operator)
+    4) Database Postgresql (Sink)
+
+-  Streams are the edges in your dataflow graph.
+    {
+        "user_id": "123",
+        "action": "click",
+        "timestamp": "2024-01-01T00:00:00.000Z",
+        "page": "/products/xyz"
+    }
+
+- Operator
+    Map: Transform each element individually
+    Filter: Remove elements that don't match a condition
+    Reduce: Combine elements within a key
+    Window: Group elements by time or count
+    Join: Combine elements from two streams
+    FlatMap: Transform each element into zero or more elements
+    Aggregate: Compute aggregates over windows or keys
+
+-  A watermark is essentially a timestamp that flows through the system alongside streaming data and declares "all events with timestamps before this watermark have arrived." 
+
+- A window is a way to group elements in a stream by time or count.
+    Tumbling Windows: Fixed-size, non-overlapping windows
+    Sliding Windows: Fixed-size, overlapping windows.
+    Session Windows: Dynamic-size windows based on activity
+    Global Windows: Custom windowing logic

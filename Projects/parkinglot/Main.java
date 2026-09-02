@@ -25,12 +25,22 @@ public class Main {
 
 
     public static void main(String[] args) {
-        ParkingLot system = new ParkingLot(5);
-
         // Test Enter & Exit
-        Car car1 = CarFactory.create("ABC123", CarType.SMALL);
+        Car car1 = CarFactory.create("helooo", CarType.SMALL);
+        
+        // New Instance
+        //ParkingLot system = new ParkingLot(5);
+
+        // ParkingLot Singleton
+        ParkingLot system = ParkingLot.getInstance(5);
         system.enter(car1);
-        system.exit(car1);
+        ParkingLot system2 = ParkingLot.getInstance(5);
+        system2.printParkingSpotsState(); // One 1 instance allowed, kept car state
+
+        Car car2 = CarFactory.create("ABC123", CarType.SMALL);
+        system.enter(car2);
+        system.exit(car2);
+        
 
         // Test Occupied Spaces (Max 5)
         for (int i = 1; i <= 6; i++) {

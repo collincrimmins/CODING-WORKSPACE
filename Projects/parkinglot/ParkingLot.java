@@ -7,10 +7,11 @@ import java.util.List;
 import javax.management.RuntimeErrorException;
 
 public class ParkingLot {
+    private static ParkingLot instance;
     private final List<Spot> parkingSpots;
     private final int hourlyRate;
 
-    public ParkingLot(int hourlyRate) {
+    private ParkingLot(int hourlyRate) {
         this.hourlyRate = hourlyRate;
         this.parkingSpots = new ArrayList<>();
 
@@ -27,6 +28,14 @@ public class ParkingLot {
             Spot spot = new Spot(CarType.LARGE);
             parkingSpots.add(spot);
         }
+    }
+
+    public static synchronized ParkingLot getInstance(int hourlyRate) {
+        if (instance == null) {
+            instance = new ParkingLot(hourlyRate);
+        }
+
+        return instance;
     }
 
     public synchronized boolean enter(Car car) {
@@ -100,6 +109,16 @@ public class ParkingLot {
 
     public List<Spot> getParkingSpots() {
         return parkingSpots;
+    }
+
+    public void printParkingSpotsState() {
+        for (Spot spot : parkingSpots) {
+            if (spot.getCar() == null) {
+                System.out.println("spot: {empty}");
+                continue;
+            }
+            System.out.println("spot: " + spot.isOccupied() + " licenseplate: " + spot.getCar().getLicensePlate());
+        }
     }
 
     public int getHourlyRate() {

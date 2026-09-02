@@ -47,6 +47,11 @@ public class Main {
         system.setLowStockAlert("2", "ProductA", 5, new AlertListenerEmail());
         system.setLowStockAlert("2", "ProductA", 4, new AlertListenerEmail());
 
+        // for (int i = 0; i < Integer.MAX_VALUE - 5; i++) {
+        //     system.addStock("2", "ProductA", 10);
+        //     system.removeStock("2", "ProductA", 8);
+        // }
+
         // Remove
         //system.removeStock("2", "ProductA", 11); // Invalid
         //system.removeStock("2", "ProductA", 5);
