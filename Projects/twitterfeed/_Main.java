@@ -30,7 +30,7 @@ public class _Main {
             Thread.sleep(1);
         }
         
-        //system.getFeed(user1, new FeedStrategyChronological());
+        system.getFeed(user1, new FeedStrategyChronological());
         system.getFeedPagination(user1, new FeedStrategyChronological(), cursorTimestamp, paginationLimit);
     }
 

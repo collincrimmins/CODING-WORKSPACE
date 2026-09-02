@@ -2,6 +2,7 @@ package Projects.twitterfeed;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -30,7 +31,7 @@ public class FeedStrategyChronological implements FeedStrategy {
 
     public List<Tweet> getFeedPagination(User user, List<Tweet> tweets, Instant cursorTimestamp, int paginationLimit) {
         // Get Users Im Following
-        Set<User> setFollowing = user.getFollowing();
+        Set<User> setFollowing = new HashSet<>(user.getFollowing());
         setFollowing.add(user); // Add myself
         
         // Get List of Tweets
