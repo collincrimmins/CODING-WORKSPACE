@@ -1,6 +1,6 @@
 package Projects.pubsub_drivers;
 
-public class Main {
+public class _Main {
     public static void main(String[] args) {
         NotificationService system = new NotificationService();
 
