@@ -27,6 +27,12 @@ public class _Main {
         expense2.setMapUserSplits(user3, 100.00);
         expense2.calculateUserSplits();
 
+        // Expense - StratPercent
+        Expense expense3 = system.createExpense("Example Percents", group1, 100.00, user1, new SplitStratPercent());
+        expense3.setMapUserSplits(user2, 70.00);
+        expense3.setMapUserSplits(user3, 30.00);
+        expense3.calculateUserSplits();
+
         // Calculate Owed vs. Needing to Pay
         //system.simplifyDebtAmounts();
 

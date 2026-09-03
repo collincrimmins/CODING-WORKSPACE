@@ -1,8 +1,10 @@
 package Projects.splitwise;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class SplitwiseService {
@@ -84,8 +86,31 @@ public class SplitwiseService {
         return true;
     }
 
-    public void simplifyDebtAmounts() {
+    public Map<User, Double> simplifyDebtAmounts() {
         // Create List<Split> which accounts for (Money I owe people) - (Money they owe me)
+
+        Map<User, Double> balances = new HashMap<>();
+        
+        // for (User user : users) {
+        //     balances.put(user, 0.0);
+        // }
+
+        // for (Expense expense : expenses) {
+        //     User payer = expense.getPaidByUser();
+        //     List<Split> splits = expense.getSplits();
+        //     if (splits == null) continue;
+
+        //     for (Split split : splits) {
+        //         if (!split.isPaid()) {
+        //             // Payer is owed money (+)
+        //             balances.put(payer, balances.getOrDefault(payer, 0.0) + split.getAmount());
+        //             // Borrower owes money (-)
+        //             balances.put(split.getUser(), balances.getOrDefault(split.getUser(), 0.0) - split.getAmount());
+        //         }
+        //     }
+        // }
+
+        return balances;
     }
 
     public void payAllSplits() {
