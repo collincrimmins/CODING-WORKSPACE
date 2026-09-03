@@ -1,10 +1,10 @@
-package Projects.lrucache;
+package Projects.lrucache.old;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class LRUCache<KeyType, ValueType> {
+public class LRUCache3<KeyType, ValueType> {
     // Cache
     private final int capacity;
     private final Map<KeyType, Node> map;
@@ -12,7 +12,7 @@ public class LRUCache<KeyType, ValueType> {
     private final Node head; // Sentinel Head (newest)
     private final Node tail; // Sentinel Tail (oldest)
 
-    public LRUCache(int capacity) {
+    public LRUCache3(int capacity) {
         if (capacity <= 0) {
             throw new IllegalArgumentException("Invalid capacity");
         }

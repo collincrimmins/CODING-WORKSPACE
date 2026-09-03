@@ -36,7 +36,8 @@ public class Twitter {
     }  
 
     public void getFeedPagination(User user, FeedStrategy feedStrategy, Instant cursorTimestamp, int paginationLimit) {
-        List<Tweet> list = feedStrategy.getFeedPagination(user, tweets, cursorTimestamp, paginationLimit);
+        PageRequest pageRequest = new PageRequest(cursorTimestamp, paginationLimit);
+        List<Tweet> list = feedStrategy.getFeed(user, tweets, pageRequest);
 
         printListOfFeed(user, list);
     }  

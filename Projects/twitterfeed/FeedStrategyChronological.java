@@ -29,7 +29,7 @@ public class FeedStrategyChronological implements FeedStrategy {
         return list;
     }
 
-    public List<Tweet> getFeedPagination(User user, List<Tweet> tweets, Instant cursorTimestamp, int paginationLimit) {
+    public List<Tweet> getFeed(User user, List<Tweet> tweets, PageRequest pageRequest) {
         // Get Users Im Following
         Set<User> setFollowing = new HashSet<>(user.getFollowing());
         setFollowing.add(user); // Add myself
@@ -47,16 +47,20 @@ public class FeedStrategyChronological implements FeedStrategy {
             return a.getCreatedAt().compareTo(b.getCreatedAt());
         });
 
+        // Get PageRequest
+        Instant pageTimestamp = pageRequest.getTimestamp();
+        int pageLimit = pageRequest.getLimit();
+
         // Use cursorTimestamp & paginationLimit
         List<Tweet> paginationList = new ArrayList<>();
         for (Tweet tweet : list) {
             // Limit
-            if (paginationList.size() >= paginationLimit) {
+            if (paginationList.size() >= pageLimit) {
                 break;
             }
 
             // Timestamp
-            if (tweet.getCreatedAt().compareTo(cursorTimestamp) > 0) {
+            if (tweet.getCreatedAt().compareTo(pageTimestamp) > 0) {
                 paginationList.add(tweet);
             }
         }
