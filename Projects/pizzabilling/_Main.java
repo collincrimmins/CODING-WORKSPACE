@@ -4,8 +4,8 @@ import java.util.List;
 
 public class _Main {
     public static void main(String[] args) {
-        Order order = new Order();
-
+        Order order = new Order(); 
+ 
         // Pizza #1
         List<ToppingEnums> toppings1 = List.of(ToppingEnums.PEPPERONI, ToppingEnums.PEPPERONI, ToppingEnums.EXTRA_CHEESE);
         order.addPizza(PizzaEnums.LARGE, toppings1);
