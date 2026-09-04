@@ -1,4 +1,4 @@
-package Projects.pizzabillingadvanced;
+package Projects.pizzabilling.pizzabillingadvanced;
 
 public class BasePizza implements Pizza {
     private final PizzaSize size;

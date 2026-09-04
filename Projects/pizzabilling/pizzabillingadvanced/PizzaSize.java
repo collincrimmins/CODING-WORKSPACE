@@ -1,4 +1,4 @@
-package Projects.pizzabillingadvanced;
+package Projects.pizzabilling.pizzabillingadvanced;
 
 public enum PizzaSize {
     SMALL("Small Pizza", 10.00),

@@ -1,4 +1,4 @@
-package Projects.pizzabillingadvanced;
+package Projects.pizzabilling.pizzabillingadvanced;
 
 public class ToppingDecorator implements Pizza {
     private final Pizza pizza;

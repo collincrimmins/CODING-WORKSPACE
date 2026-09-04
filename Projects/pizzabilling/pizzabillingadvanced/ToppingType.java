@@ -1,4 +1,4 @@
-package Projects.pizzabillingadvanced;
+package Projects.pizzabilling.pizzabillingadvanced;
 
 public enum ToppingType {
     PEPPERONI("pepperoni", 0.50),

@@ -1,10 +1,26 @@
+Answering
+- API
+    > Create API Endpoint for every Functional Requirement
+- How to Answer "Non-Functional Requirements"
+    > Availability vs. Consistency
+        - High Consistency for Ticketmaster Booking API call
+    > Latency
+        - <100ms for feed generation
+        - <200ms for live comment SSE receiving
+    > Scalability
+        - Scalable for 10M DAU
+
 Main Patterns
-- Cache (Redis)
-    > Distributed Lock 
+- Cache
+    > Redis Distributed Lock 
         "ticket123: locked"
-    > Location Cache (Redis Geohash)
-    > Rate Limiting
+    > Redis Location Cache (Redis Geohash)
+    > Redis Rate Limiting
         Token Bucket
+    > Redis Pub-Sub
+        Websockets / SSE
+    > Redis Sorted Set
+        Precomputed Feed
     > Hot Keys
         - Read/Write: Replicate Hot Keys (nodes) w/ fan-out
     > Cache Stampede (Thundering Herd)

@@ -104,8 +104,27 @@ L: Liskov Substition: Subtypes can be used the same as their base types
     "Square" extends "Shape"
     "EditableDocument" extends "ReadOnlyDocument"
 I: Interface Segregation: Interfaces should be small & purpose based ("iPhone" vs "RotaryPhone")
-D: Dependancy Inversion: High Level Modules (Business Logic) should not depened on low-level modules, like writing to a SQL database. 
-    They should call to a database service.
+D: Dependancy Inversion Principle: your code should call to the HIGH LEVEL ABSTRACTION (not concerned with the Concrete Implementation)
+
+    interface MessageSender {
+        void send(String message);
+    }
+
+    class EmailSender implements MessageSender {
+        public void send(String message) { /* send email */ }
+    }
+
+    class NotificationService {
+        private final MessageSender sender;                 <--------- Generic Base Class MessageSender
+
+        NotificationService(MessageSender sender) {
+            this.sender = sender;
+        }
+
+        void notify(String message) {
+            sender.send(message);                           <--------- Generic Method Call
+        }
+    }
 
 
 
