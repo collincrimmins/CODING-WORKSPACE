@@ -1,6 +1,7 @@
 package Projects.pizzabilling;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,6 +25,10 @@ public class Order {
             total = total + pizza.getCost();
         }
         return total;
+    }
+    
+    public List<Pizza> getPizzas() {
+        return Collections.unmodifiableList(pizzas);
     }
 
     public void printBill() {
