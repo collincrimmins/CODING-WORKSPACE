@@ -10,6 +10,10 @@ public class Main {
         and removing inventory, transferring stock between locations, 
         and alerting when inventory runs low
 
+        Prompt:  Design a Product Stock Availability Service
+        Design a service that determines if a product is in stock across multiple fulfillment centers, each with its own database.
+        https://www.hellointerview.com/community/questions/product-stock-availability/cm6ia7l9h00s617nkgn5fzeud
+
         Requirements
         - Items have a id & name & amount
         - InventorySystem must add/remove from Inventory (composed of Items)

@@ -18,6 +18,12 @@ public class Logger {
         }
     }
 
+    public void stop() {
+        for (Destination dest : destinations) {
+            dest.stop();
+        }
+    }
+
     public void debug(String text) {
         write(LogLevel.DEBUG, text);
     }

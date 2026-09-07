@@ -1,16 +1,4 @@
-Answering
-- API
-    > Create API Endpoint for every Functional Requirement
-- How to Answer "Non-Functional Requirements"
-    > Availability vs. Consistency
-        - High Consistency for Ticketmaster Booking API call
-    > Latency
-        - <100ms for feed generation
-        - <200ms for live comment SSE receiving
-    > Scalability
-        - Scalable for 10M DAU
-
-Main Patterns
+# Main Patterns
 - Cache
     > Redis Distributed Lock 
         "ticket123: locked"
@@ -90,7 +78,34 @@ Main Patterns
     > Pessimistic Locking: row lock upfront
     > Optimistic Locking: assumes rare collisions, so detect after transaction is complete, then do actions (like version numbers)
     > Hot Key: Queue to check status for Taylor Swift tickets (eventual consistency)
+- Load Balancers
+    > Strategies
+        > Round Robin
+            - Sticky round-robin: If Alice’s first request goes to service A, the following requests go to service A as well.
+            - Weighted round-robin
+        > Least # of Connections
+            - Stateful Connections: Websockets & SSE
+        > Least Respose Time
+        > Random
+    > Level
+        > Level 4
+            - Stateful Connections (Websockets)
+        > Level 7: Knows about the Request
+            - Path Routing (/images, /users)
 
+# How to Answer
+- API
+    > Create API Endpoint for every Functional Requirement
+- How to Answer "Non-Functional Requirements"
+    > Availability vs. Consistency
+        - High Consistency for Ticketmaster Booking API call
+    > Latency
+        - <100ms for feed generation
+        - <200ms for live comment SSE receiving
+    > Scalability
+        - Scalable for 10M DAU
+    > Durability
+        - Can't lose Payment Service Payments
 
 
 
