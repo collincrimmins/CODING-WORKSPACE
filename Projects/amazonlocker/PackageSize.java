@@ -11,7 +11,7 @@ public enum PackageSize {
         this.size = size;
     }
 
-    public boolean canFit(PackageSize size) {
-        return size.size >= this.size;
+    public boolean canFitIntoCompartment(PackageSize locker) {
+        return locker.size >= this.size; // Bug: logic is reversed
     }
 }

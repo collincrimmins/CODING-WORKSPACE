@@ -12,7 +12,7 @@ public class AmazonLocker {
 
     public AmazonLocker(int numSmall, int numMedium, int numLarge) {
         this.compartments = new ArrayList<>();
-        this.tokens = new ConcurrentHashMap<>();
+        this.tokens = new HashMap<>();
 
         // Create Compartments
         int compartmentNumber = 1;
@@ -39,7 +39,7 @@ public class AmazonLocker {
 
         for (Compartment unit : compartments) {
             if (unit.getStatus() == CompartmentStatus.AVAILABLE) {
-                if (unit.getSize() == size) {
+                if (size.canFitIntoCompartment(unit.getSize())) {
                     // Enter Here
                     unit.setOccupied();
 

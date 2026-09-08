@@ -15,6 +15,17 @@ public class _Main {
         Token token = system.depositPackage(PackageSize.LARGE, "123");
         System.out.println(token.toString());
 
+        // SMALL package will fill up SMALL, MEDIUM, and LARGE
+        system.depositPackage(PackageSize.SMALL, "11");
+        system.depositPackage(PackageSize.SMALL, "12");
+        system.depositPackage(PackageSize.SMALL, "13");
+        system.depositPackage(PackageSize.SMALL, "14");
+        system.printCompartmentStatuses();
+        system.enterAccessCode("11");
+        system.enterAccessCode("12");
+        system.enterAccessCode("13");
+        system.enterAccessCode("14");
+
         // Wait 3 seconds to Expire Token
         system.printCompartmentStatuses();
         System.out.println(token.isExpired());
