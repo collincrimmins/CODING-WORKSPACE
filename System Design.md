@@ -11,8 +11,8 @@
         Precomputed Feed
     > Hot Keys
         - Read/Write: Replicate Hot Keys (nodes) w/ fan-out
-    > Cache Stampede (Thundering Herd)
-        Request coalescing (single flight): Allow only one request to rebuild the cache while others wait for the result. 
+    > "Cache Stampede" on TTL Expiration (Thundering Herd)
+        "Single Flight": Allow only one request to rebuild the cache while others wait for the result. 
 - Elasticsearch
     > Text Search (& Fuzzy Search): Inverted Index
     > Properties: An index on the field

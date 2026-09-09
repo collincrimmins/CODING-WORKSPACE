@@ -26,9 +26,9 @@ public class _Main {
         system.addMeeting(myUsers, "room1", start, end);
 
         // Invalid Time
-        // start = Instant.now().plusSeconds(1);
-        // end = Instant.now().plusSeconds(2);
-        // system.addMeeting(myUsers, "room1", start, end);
+        start = Instant.now().plusSeconds(1);
+        end = Instant.now().plusSeconds(2);
+        system.addMeeting(myUsers, "room1", start, end);
 
         // Valid (in room #2)
         start = Instant.now().plusSeconds(1);
