@@ -7,22 +7,24 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 public class NotificationService {
     Map<String, User> users;
     Map<String, Topic> topics;
-    //final ExecutorService deliveryExecutor;
+    final ExecutorService deliveryExecutor;
 
     public NotificationService() {
         this.users = new ConcurrentHashMap<>();
         this.topics = new ConcurrentHashMap<>();
-        //this.deliveryExecutor = Executors.newCachedThreadPool(); // A cached thread pool is suitable for handling many short-lived, bursty tasks (message deliveries).
+        this.deliveryExecutor = Executors.newCachedThreadPool(); // A cached thread pool is suitable for handling many short-lived, bursty tasks (message deliveries).
+        //this.deliveryExecutor = Executors.newScheduledThreadPool(3);
     }
 
     // --- Topics ---
 
     public void createTopic(String name) {
-        Topic newTopic = new Topic(name, new ValidatorText(50));
+        Topic newTopic = new Topic(name, new ValidatorText(50), deliveryExecutor);
         Topic ExistingTopic = topics.putIfAbsent(name, newTopic); // Thread safe: check-then-act
         if (ExistingTopic != null) {
             System.out.println("[Error] Topic already exists: " + name);
@@ -91,7 +93,7 @@ public class NotificationService {
 
     // Shutdown
     public void shutdown() {
-        //deliveryExecutor.shutdown();
+        deliveryExecutor.shutdown();
     }
    
 }

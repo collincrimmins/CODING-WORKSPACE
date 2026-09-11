@@ -77,8 +77,9 @@ scheduler.scheduleAtFixedRate(
 
 // delay
 scheduler.schedule(() -> {
-    System.out.println("Executed after 3 seconds!");
-}, 3, TimeUnit.SECONDS);
+    System.out.println("Executed after 3 seconds!");}, 
+    3, TimeUnit.SECONDS
+);
 
 // Monitoring
 ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(2);
@@ -95,9 +96,9 @@ volatile = a variable's value will be modified by multiple threads
     2) Ordering
         Operations on a volatile variable cannot be re-ordered relative to each other.
 volatile use cases
-    - Flags & Status variables
-    - Singleton pattern
-    - Lightwight synchroniation 
+- Flags & Status variables
+- Singleton pattern
+- Lightwight synchroniation 
 
 # Thread Communication
 lock.wait()
@@ -215,9 +216,21 @@ try {
 
 # Key Concurrency Pitfalls
 - Check-then-Act: Testing a condition and acting without synchronization (race condition).
+    if (!map.containsKey(key)) {
+        map.put(key, new Value()); // Race condition: another thread may put a value first
+    }
 - Read-Modify-Write: Non-atomic composite updates (`count++`).
     count = count + 1 => read count, add +1, write to count
 - Coordination: Threads must handoff/wait for work
+    // PITFALL: Busy-spinning consumes 100% CPU
+    while (!ready) { 
+        // waiting...
+    }
+
+    // FIX: Using a CountdownLatch or BlockingQueue for handoff
+    CountDownLatch latch = new CountDownLatch(1);
+    // Consumer waits efficiently without pinning the CPU
+    latch.await();
 - Thread Starvation: Low-priority threads blocked indefinitely from resources.
 - Deadlock: Two threads waiting for locks held by each other.
 

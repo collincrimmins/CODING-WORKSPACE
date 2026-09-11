@@ -5,6 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import Projects.ratelimiter.Limiters.Config;
+import Projects.ratelimiter.Limiters.ConfigTokenBucket;
+
 public class Main {
     /*
         https://codewitharyan.com/tech-blogs/design-rate-limiter 
@@ -57,27 +60,21 @@ public class Main {
         String endpoint1 = "/MyEndpoint";
         String endpoint2 = "/MyEndpoint2Window";
 
-        List<Map<String, Object>> listConfigs = new ArrayList<>();
+        List<Config> listConfigs = new ArrayList<>();
 
         // TokenBucket
-        HashMap<String, Integer> configTokenBucket = new HashMap<>();
-        configTokenBucket.put("maxTokens", 100);
-        configTokenBucket.put("refillTokensPerSecond", 50);
-        Map<String, Object> config1 = new HashMap<>();
-        config1.put("endpoint", endpoint1);
-        config1.put("algorithm", "TokenBucket");
-        config1.put("settings", configTokenBucket);
-        listConfigs.add(config1);
+        ConfigTokenBucket configTokenBucket = new ConfigTokenBucket(endpoint1, 100, 50);
+        listConfigs.add(configTokenBucket);
 
         // SlidingWindowLog
-        HashMap<String, Integer> configSlidingWindow = new HashMap<>();
-        configSlidingWindow.put("maxRequests", 100);
-        configSlidingWindow.put("windowMs", 50);
-        Map<String, Object> config2 = new HashMap<>();
-        config2.put("endpoint", endpoint2);
-        config2.put("algorithm", "SlidingWindowLog");
-        config2.put("settings", configSlidingWindow);
-        listConfigs.add(config2);
+        // HashMap<String, Integer> configSlidingWindow = new HashMap<>();
+        // configSlidingWindow.put("maxRequests", 100);
+        // configSlidingWindow.put("windowMs", 50);
+        // Map<String, Object> config2 = new HashMap<>();
+        // config2.put("endpoint", endpoint2);
+        // config2.put("algorithm", "SlidingWindowLog");
+        // config2.put("settings", configSlidingWindow);
+        // listConfigs.add(config2);
 
         RateLimiter system = new RateLimiter(listConfigs);
 

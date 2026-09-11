@@ -15,7 +15,7 @@ public class TaskSchedulerService {
         this.workerThreadPool = Executors.newFixedThreadPool(3);
         
         // Single thread continuously listening for ready jobs in the DelayQueue
-        this.schedulerThread = new Thread(this::processQueue);
+        this.schedulerThread = new Thread(() -> this.processQueue());
         this.schedulerThread.start();
     }
 

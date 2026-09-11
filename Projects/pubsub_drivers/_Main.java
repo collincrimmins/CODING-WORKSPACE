@@ -46,6 +46,7 @@ public class _Main {
 
         // End Async Executor
         system.shutdown();
+        System.out.println("delivered all async - you can use a delay also (ScheduledExecutorSerice)");
     }
 
     /*
