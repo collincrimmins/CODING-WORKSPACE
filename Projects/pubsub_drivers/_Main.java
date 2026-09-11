@@ -55,6 +55,10 @@ public class _Main {
         There can be multiple custom validators with scope to add more.
         https://github.com/ashishps1/awesome-low-level-design/blob/main/solutions/java/src/pubsubsystem/README.md
 
+        Design and implement a notification center system that can handle multiple types
+         of notifications, manage delivery preferences, and provide real-time updates to users.
+        https://www.hellointerview.com/community/questions/notification-center/cmgzv4hdy023z07adyhgoaozu 
+
         Requirements
         - Create multiple topics
         - Topics have subscribers (delivery drivers)

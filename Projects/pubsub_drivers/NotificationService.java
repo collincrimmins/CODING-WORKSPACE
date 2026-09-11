@@ -19,7 +19,8 @@ public class NotificationService {
         //this.deliveryExecutor = Executors.newCachedThreadPool(); // A cached thread pool is suitable for handling many short-lived, bursty tasks (message deliveries).
     }
 
-    // Topics
+    // --- Topics ---
+
     public void createTopic(String name) {
         Topic newTopic = new Topic(name, new ValidatorText(50));
         Topic ExistingTopic = topics.putIfAbsent(name, newTopic); // Thread safe: check-then-act
@@ -74,7 +75,8 @@ public class NotificationService {
         topics.get(name).removeSubscriber(subscriber);
     }
 
-    // Users
+    // --- Users ---
+    
     public User addNewUser(User user) {
         if (users.containsKey(user.getId())) {
             System.out.println("[Error] User already exists: " + user.getId());

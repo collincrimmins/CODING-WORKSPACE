@@ -106,6 +106,9 @@
         - Scalable for 10M DAU
     > Durability
         - Can't lose Payment Service Payments
+    > Read:Write Ratio
+        - 1,000 : 1 read/write ratio for Yelp
+        - 1 : 1 read/write ratio for Discord
 
 
 

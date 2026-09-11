@@ -7,6 +7,8 @@ import java.util.Map;
 
 public class Main {
     /*
+        https://codewitharyan.com/tech-blogs/design-rate-limiter 
+
         Prompt: "You're building an in-memory rate limiter for an API gateway. 
         The system receives configuration from an external service that 
         provides rate limiting rules per endpoint. Each endpoint can have its 
