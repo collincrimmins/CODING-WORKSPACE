@@ -1,51 +1,34 @@
 package Projects.jobscheduler;
 
 import java.time.Instant;
-import java.util.concurrent.TimeUnit;
 
 public class _Main {
     public static void main(String[] args) throws InterruptedException {
-        TaskSchedulerService scheduler = new TaskSchedulerService();
+        JobSchedulerService system = new JobSchedulerService();
 
-        // Example Runnable
-        Runnable task1 = new Runnable() {
-            @Override
-            public void run() {
-                System.out.println("Hello from a task!");
+        // Run Immediately
+        system.addJob(new Job("1", "Job 1", JobType.RUN_IMMEDIATELY, Instant.now(), 
+            () -> {
+                System.out.println("RUN_IMMEDIATELY");
             }
-        };
+        ));
 
-        // 1. Immediate Job
-        Job job1 = new Job("1", "Immediate Job", JobType.RUN_IMMEDIATELY, Instant.now(), () -> {
-            System.out.println("-> Immediate Job executed instantly!");
-        });
+        // Run 3 seconds from now (not recurring)
+        system.addJob(new Job("1", "Job 1", JobType.RUN_FUTURE_ONE_TIME, Instant.now().plusSeconds(3), 
+            () -> {
+                System.out.println("RUN_FUTURE_ONE_TIME - 3 seconds");
+            }
+        ));
 
-        // 2. Future One-Time Job (5 seconds from now)
-        Job job2 = new Job("2", "Future Job (5s)", JobType.RUN_FUTURE_ONE_TIME, Instant.now().plusSeconds(5), () -> {
-            System.out.println("-> Future Job executed after 5 seconds delay!");
-        });
+        // Run 5 seconds from now (daily recurring)
+        system.addJob(new Job("1", "Job 1", JobType.RUN_RECURRING_DAILY, Instant.now().plusSeconds(5), 
+            () -> {
+                System.out.println("RUN_RECURRING_DAILY - 5 seconds & run every 5 seconds (simulate daily run)");
+            }
+        ));
 
-        // 3. Recurring Daily Job (Starts in 2 seconds)
-        Job job3 = new Job("3", "Recurring Job", JobType.RECURRING_DAILY, Instant.now().plusSeconds(2), () -> {
-            System.out.println("-> Recurring Job executed!");
-        });
-
-         Job job4 = new Job("4", "Run now", JobType.RUN_IMMEDIATELY, Instant.now(), () -> {
-            System.out.println("-> ran immmediately");
-        });
-
-        System.out.println("Adding jobs to scheduler...");
-        scheduler.addJob(job1);
-        scheduler.addJob(job2);
-        scheduler.addJob(job3);
-        scheduler.addJob(job4);
-
-        // Let the scheduler run for 7 seconds to observe execution
-        TimeUnit.SECONDS.sleep(7);
-
-        // Shutdown cleanly
-        scheduler.shutdown();
-        System.out.println("Scheduler shut down.");
+        // shutdown
+        //system.shutdown();
     }
 
     /*
@@ -58,5 +41,37 @@ public class _Main {
         Requirements
         - Create Tasks (run immediately / future schedule time, but run just one time / recurring daily at X time)
         - Execute using multiple threads
+
+        Class Design
+
+            JobSchedulerService
+            - delayQueue<Job> queue
+            - ExecutorService scheduler = Executors.newSingleThreadExecutor()
+            - ExecutorService executor = Executors.newThreadPool(3)
+            - volatile boolean isRunning
+            + addJob()
+            + executeJob()
+            + schedulerLoop()
+            + shutdown()
+
+            Job (runnable)
+            - String name
+            - JobType type
+            - Instant executionTime
+            - Runnable job
+            + rescheduleNextDay()
+
+            class ScheduledJob implements Delayed
+            - Job job
+            + compareTo()
+            + getDelay()
+
+            enum JobType
+            RUN_IMMEDIATELY,
+            RUN_FUTURE_ONE_TIME
+            RECURRING_DAILY
+
+
+
     */
 }

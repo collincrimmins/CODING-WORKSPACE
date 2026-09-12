@@ -1,14 +1,43 @@
 package Projects.ratelimiter;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import Projects.ratelimiter.Limiters.Config;
 import Projects.ratelimiter.Limiters.ConfigTokenBucket;
 
-public class Main {
+public class _Main {
+    public static void main(String[] args) throws InterruptedException {
+        String client1 = "client1";
+        String endpoint1 = "/endpoint";
+
+        List<Config> list = new ArrayList<>();
+
+        // TokenBucket
+        ConfigTokenBucket config = new ConfigTokenBucket(endpoint1, 100, 45);
+        list.add(config);
+
+        RateLimiter system = new RateLimiter(list);
+
+        Thread.sleep(500);
+
+        int tokensUsed = 0;
+        for (int i = 1; i <= 500; i++) {
+            LimiterResponse response = system.allow(client1, endpoint1);
+            if (response.isAllowed()) {
+                tokensUsed = tokensUsed + 1;
+            }
+
+            Thread.sleep(10);
+        }
+
+        System.out.println("Used " + tokensUsed);
+
+    }
+
+
+
+
     /*
         https://codewitharyan.com/tech-blogs/design-rate-limiter 
 
@@ -44,6 +73,40 @@ public class Main {
         - Endpoint (X - Just a String, not an Entity)
         - RateLimiterAlgorithm
 
+        Class Design
+
+            RateLimiter
+            + allow(client, endpoint)
+
+            interface Limiter
+            + allow(String endpoint, String clientId)
+
+            class LimiterTokenBucket implements Limiter
+            - int tokens
+            - int tokenRefillperSecond
+            + allow()
+
+            Limiter Factory
+            + create(Config config) -> new Limiter()
+
+            RateLimiterResponse
+            - boolean allowed
+
+            abstract class Config
+            - String algorithm (tokenbucket)
+            - String endpoint (/endpoint)
+
+            class ConfigTokenBucket extends Config
+            - maxTokens
+            - refillTokensPerSecond
+
+
+
+
+
+
+
+
         Questions: "How would you add a new rate limiting algorithm?"
             We use our Factory pattern to add new algorithms
 
@@ -54,52 +117,4 @@ public class Main {
             Each algorithm class has a Map: Map<String, TokenBucket> buckets
             Every client has their own TokenBucket (by key "client1") so we lock the object
     */
-
-    public static void main(String[] args) throws InterruptedException {
-        String client1 = "client1";
-        String endpoint1 = "/MyEndpoint";
-        String endpoint2 = "/MyEndpoint2Window";
-
-        List<Config> listConfigs = new ArrayList<>();
-
-        // TokenBucket
-        ConfigTokenBucket configTokenBucket = new ConfigTokenBucket(endpoint1, 100, 50);
-        listConfigs.add(configTokenBucket);
-
-        // SlidingWindowLog
-        // HashMap<String, Integer> configSlidingWindow = new HashMap<>();
-        // configSlidingWindow.put("maxRequests", 100);
-        // configSlidingWindow.put("windowMs", 50);
-        // Map<String, Object> config2 = new HashMap<>();
-        // config2.put("endpoint", endpoint2);
-        // config2.put("algorithm", "SlidingWindowLog");
-        // config2.put("settings", configSlidingWindow);
-        // listConfigs.add(config2);
-
-        RateLimiter system = new RateLimiter(listConfigs);
-
-        double Time = 0;
-        int interval = 10;
-        int totalTokensUsed = 0;
-        for (int i = 1; i <= 500; i++) {
-            // Request
-            RateLimitResponse response1 = system.allow(client1, endpoint1);
-            if (response1.isAllowed()) {
-                totalTokensUsed = totalTokensUsed + 1;
-            }
-
-            // Print
-            System.out.println("");
-            System.out.println("=> Time: " + Time / 1000);
-            System.out.println(response1.toString());
-
-            // Wait
-            Thread.sleep(interval);
-            Time = Time + interval;
-        }
-        
-        // Summary
-        System.out.println("");
-        System.out.println("Total Tokens used: " + totalTokensUsed);
-    }
 }

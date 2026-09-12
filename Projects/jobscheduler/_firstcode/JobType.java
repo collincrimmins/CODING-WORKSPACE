@@ -1,7 +1,7 @@
-package Projects.jobscheduler;
+package Projects.jobscheduler._firstcode;
 
 public enum JobType {
     RUN_IMMEDIATELY,
     RUN_FUTURE_ONE_TIME,
-    RUN_RECURRING_DAILY
+    RECURRING_DAILY
 }

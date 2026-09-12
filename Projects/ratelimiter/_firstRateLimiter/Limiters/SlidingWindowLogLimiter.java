@@ -1,11 +1,11 @@
-package Projects.ratelimiter.Limiters;
+package Projects.ratelimiter._firstRateLimiter.Limiters;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
 
-import Projects.ratelimiter.RateLimitResponse;
+import Projects.ratelimiter._firstRateLimiter.RateLimitResponse;
 
 public class SlidingWindowLogLimiter implements Limiter {
     private final int maxRequests;

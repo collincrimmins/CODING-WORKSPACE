@@ -1,7 +1,7 @@
 package Projects.ratelimiter.Limiters;
 
-import Projects.ratelimiter.RateLimitResponse;
+import Projects.ratelimiter.LimiterResponse;
 
 public interface Limiter {
-    public RateLimitResponse allow(String key);
+    public LimiterResponse allow(String clientId);
 }

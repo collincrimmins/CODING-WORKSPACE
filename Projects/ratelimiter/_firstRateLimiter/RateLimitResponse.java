@@ -1,4 +1,4 @@
-package Projects.ratelimiter;
+package Projects.ratelimiter._firstRateLimiter;
 
 public class RateLimitResponse {
     private final boolean allowed;

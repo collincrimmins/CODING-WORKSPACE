@@ -4,10 +4,10 @@ import java.time.Instant;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 
-public class ScheduledJob implements Delayed {
+public class JobScheduled implements Delayed {
     private final Job job;
 
-    public ScheduledJob(Job job) {
+    public JobScheduled(Job job) {
         this.job = job;
     }
 
@@ -30,5 +30,4 @@ public class ScheduledJob implements Delayed {
         long diffMs = job.getExecutionTime().toEpochMilli() - Instant.now().toEpochMilli();
         return unit.convert(diffMs, TimeUnit.MILLISECONDS);
     }
-    
 }

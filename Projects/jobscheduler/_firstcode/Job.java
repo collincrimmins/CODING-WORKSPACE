@@ -1,6 +1,7 @@
-package Projects.jobscheduler;
+package Projects.jobscheduler._firstcode;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 public class Job {
     private final String id;
@@ -17,23 +18,14 @@ public class Job {
         this.task = task;
     }
 
-    public String getId() {
-        return id;
-    }
-    public String getName() {
-        return name;
-    }
-    public JobType getJobType() {
-        return jobType;
-    }
-    public Instant getExecutionTime() {
-        return executionTime;
-    }
-    public Runnable getTask() {
-        return task;
-    }
-
+    public String getId() { return id; }
+    public String getName() { return name; }
+    public JobType getJobType() { return jobType; }
+    public Instant getExecutionTime() { return executionTime; }
+    public Runnable getTask() { return task; }
+    
+    // Used for Recurring Jobs
     public void rescheduleNextDay() {
-        this.executionTime = this.executionTime.plusSeconds(5); // this.executionTime.plusSeconds(60 * 60 * 24);
+        this.executionTime = this.executionTime.plus(1, ChronoUnit.DAYS);
     }
 }
